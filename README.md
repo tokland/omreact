@@ -34,7 +34,7 @@ const update = (action, state, props) => {
     case "increment":
       return command({state: {value: state.value + 1}});
     default:
-      throw new Error(`[update] Action to implemented: ${JSON.stringify(action)}`);
+      throw new Error(`Unknown action: ${JSON.stringify(action)}`);
   }
 };
 
@@ -63,19 +63,27 @@ Go to `http://localhost:3000`.
 
 ### Component overview
 
+#### Constructor
+
+> `component(name, {init, update, render, [lifecycles]})`
+
 An OmReact component is defined by:
 
 - An `init` command: Equivalent to using `this.state = ...` and ` componentDidMount` + `this.setState` in a typical React component.
 
-- A function `update`: Takes an action and current `state`/`props` and return a command to perform. A command may have any of those three keys:
+- A function `update`: Takes an action and current `state`/`props` and return a command to perform.
+
+- `render`: Like a React `render` function except that you should prefix event props with a `$`: `$eventProp`, with the action to be execute. An action can be either a pure value or pure functions (callable once or twice, more on this lated).
+
+#### Command
+
+A command may have any of those three keys:
 
   - `state`: The new state of the component.
   - `asyncActions`: An array of promises that resolve into actions.
   - `parentActions`: An array of parent actions to notify the parent component through props.
 
-- `render`: Like a React `render` function except that you should prefix event props with a `$`: `$eventProp`, with the action to be execute. An action can be either a pure value or pure functions (callable once or twice, more on this lated).
-
-## Side-effects
+### Side-effects
 
 `OmrRact` does not provide access to the `setState` method of the component. Instead, you write asynchronous code (timers, requests) using `asyncActions` of a command, an array of promises that resolve into some other actions. An example:
 
@@ -104,7 +112,7 @@ const update = (action, state, props) => {
     case "fetchRandom":
       return command({asyncActions: [getPromiseRandomNumber(1, 10).then(actions.add)]});
     default:
-      throw new Error(`[update] Action to implemented: ${JSON.stringify(action)}`);
+      throw new Error(`Unknown action: ${JSON.stringify(action)}`);
   }
 };
 
@@ -142,7 +150,7 @@ const update = (action, state, props) => {
     case "notifyParent":
       return command({parentActions: [callProp(props.onFinish, state.value)]});
     default:
-      throw new Error(`[update] Action to implemented: ${JSON.stringify(action)}`);
+      throw new Error(`Unknown action: ${JSON.stringify(action)}`);
   }
 };
 
@@ -159,7 +167,7 @@ export default component("CounterParentNotifications", {init, render, update});
 
 ### Actions
 
-#### Props/actions memoization
+#### Memoization
 
 It's a well known caveat in React that you should never pass newly created values (arrays, objects or functions) as props. React components would think those props have changed and issue an unnecessary re-render. Always extract them to `const` values. Also, use memoization (there is a helper for that: `memoize`) in action constructors. Example:
 
@@ -178,7 +186,7 @@ When looking on the examples, you may think there is a little bit of boilerplate
 
 #### How do actions usually look?
 
-They tend to have these 4 forms. Here the actions:
+They use to have these 4 shapes.:
 
 ```js
 const actions = {
@@ -189,7 +197,7 @@ const actions = {
 }
 ```
 
-And here how to call them in the view:
+And they are called this way:
 
 - An _object_: They don't need arguments. Example `$onClick={actions.increment}`. The dispatcher will see that it's not a function and won't try to call it with the event arguments.
 - A _1-time callable function_ that takes only constructor arguments. Example: `$onClick={actions.add(1)}`.
