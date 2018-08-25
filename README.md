@@ -63,9 +63,7 @@ Go to `http://localhost:3000`.
 
 ### Component overview
 
-#### Constructor
-
-<img src="https://github.com/tokland/omreact/blob/master/OmReact.png" alt="Diagram" />
+![Diagram](https://github.com/tokland/omreact/blob/master/OmReact.png)
 
 > component(name, {init, update, render, [lifecycles]})
 
