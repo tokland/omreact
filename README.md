@@ -65,7 +65,7 @@ Go to `http://localhost:3000`.
 
 #### Constructor
 
-[Diagram](https://github.com/tokland/omreact/blob/master/OmReact.png)
+<img src="https://github.com/tokland/omreact/blob/master/OmReact.png" alt="Diagram" />
 
 > component(name, {init, update, render, [lifecycles]})
 
