@@ -1,0 +1,75 @@
+{
+  "name": "omreact",
+  "version": "0.0.2",
+  "description": "Purely functional React components with local state",
+  "license": "MIT",
+  "repository": "tokland/omreact",
+  "author": {
+    "name": "Arnau Sanchez",
+    "email": "pyarnau@gmail.com",
+    "url": "stackoverflow.com/users/188031/tokland"
+  },
+  "engines": {
+    "node": ">=8"
+  },
+  "files": [
+    "index.js",
+    "component",
+    "actions",
+    "commands"
+  ],
+  "scripts": {
+    "precommit": "lint-staged",
+    "lint": "eslint 'src/**/*.js' 'test/**/*.js'",
+    "code-quality": "npm run lint",
+    "build": "babel src -d . --source-maps",
+    "build-watch": "babel src -d . --source-maps --watch",
+    "prepublish": "npm run build",
+    "release": "npm run code-quality && npm run build && npm publish"
+  },
+  "main": "index.js",
+  "keywords": [
+    "react",
+    "functional",
+    "state",
+    "reducer",
+    "immutable",
+    "elm"
+  ],
+  "dependencies": {
+    "@babel/plugin-proposal-class-properties": "^7.0.0-rc.1",
+    "lodash": "^4.17.10",
+    "memoize-weak": "^1.0.2",
+    "react": "^15.6.2",
+    "shouldcomponentupdate-children": "^1.1.0"
+  },
+  "peerDependencies": {
+    "react": "^15.0.0"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.0.0-beta.54",
+    "@babel/core": "^7.0.0-beta.54",
+    "@babel/preset-env": "^7.0.0-beta.54",
+    "babel-eslint": "8",
+    "eslint": "4.x",
+    "eslint-config-prettier": "^2.9.0",
+    "eslint-plugin-node": "^7.0.1",
+    "eslint-plugin-prettier": "^2.6.0",
+    "lint-staged": "^7.0.4",
+    "prettier": "^1.11.1"
+  },
+  "lint-staged": {},
+  "babel": {
+    "presets": [
+      [
+        "@babel/preset-env",
+        {
+          "modules": false
+        }
+      ]
+    ],
+    "plugins": [
+      "@babel/plugin-proposal-class-properties"
+    ]
+  }
+}
