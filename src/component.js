@@ -9,7 +9,8 @@ function component(name, { init, render, update, actions, lifecycles = {} }) {
 
     constructor(props) {
       super(props);
-      this.state = {value: init.state};
+      this.initValue = _(init).isFunction() ? init(props) : init;
+      this.state = {value: this.initValue.state};
       this._getDispatcher = this._getDispatcher.bind(this);
       this._dispatch = this._dispatch.bind(this);
       this._getDispatcher = memoize(this._getDispatcher);
@@ -20,7 +21,7 @@ function component(name, { init, render, update, actions, lifecycles = {} }) {
     }
 
     componentDidMount() {
-      this._runUpdateAction(_.omit(init, ["state"]));
+      this._runUpdateAction(_.omit(this.initValue, ["state"]));
     }
 
     componentWillUnmount() {

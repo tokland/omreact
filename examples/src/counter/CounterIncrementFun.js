@@ -6,7 +6,7 @@ const actions = {
   increment: ev => ({type: "increment"}),
 };
 
-const init = command({state: {value: 0}});
+const init = props => command({state: {value: 0}});
 
 const update = (action, state, props) => {
   switch (action.type) {
