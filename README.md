@@ -9,8 +9,18 @@ Think of `OmReact` as an component-with-local-state based Elm approach.
 ## Install
 
 ```sh
-$ npm install omreact
+$ yarn add omreact
 ```
+
+## Run examples
+
+```sh
+$ cd examples
+$ yarn install
+$ yarn start
+```
+
+Go to `http://localhost:3000`.
 
 ## Simple example: counter
 
@@ -59,7 +69,7 @@ As you see, an omreact component is defined by:
   - `asyncActions`: An array of promises that resolve into another actions.
   - `parentActions`: An array of parent actions to notify the parent component through props.
 
-- `render`: Typical React render function except that it accepts `$eventProp` to pass actions (either pure values or pure functions) instead of impure functions with side-effects. `$eventProp` would pass the arguments to the value, `$$eventProp` does not, so the value should be a plain object action, not a function.
+- `render`: Typical React render function except that it accepts `$eventProp` to pass actions (either pure values or pure functions) instead of impure functions with side-effects. `$eventProp` would pass the arguments to the value, either an action value or a function.
 
 ## Side-effects
 
@@ -158,28 +168,6 @@ const actions = {
 };
 ```
 
-#### Object actions vs function actions
-
-If you have an action that needs arguments from the event, use a single `$` prefix and pass a function action:
-
-```js
-const actions = {
-  increment: ev => ({type: "increment", ev}),
-};
-
-// <a $onClick={actions.increment}`>+1</a>
-```
-
-When you have an action that don't need arguments from the event, use a double `$$` prefix and pass an non-function action:
-
-```js
-const actions = {
-  increment: {type: "increment"},
-};
-
-// <a $onClick={actions.increment}`>+1</a>
-```
-
 #### Agnostic actions
 
 When looking on the examples, you could wonder there is a bit of boilerplate on the actions. Instead of a single function that makes this`.setState` calls, we have now actions and a dispatcher that need to match those actions.
@@ -190,8 +178,8 @@ However, note that those `actions` objects are just examples, you could be using
 
 They tend to have these 4 forms:
 
-- An _object_: They don't need arguments. Example `$$onClick={actions.increment}`.
-- A _1-time callable function_ that takes only constructor arguments. Example: `$$onClick={actions.add(1)}`.
+- An _object_: They don't need arguments. Example `$onClick={actions.increment}`.
+- A _1-time callable function_ that takes only constructor arguments. Example: `$onClick={actions.add(1)}`.
 - A _1-time callable function_ that takes only event arguments: Example: `$onClick={actions.addMouseButton}`.
 - A _2-time callable function_ that takes both constructor and event arguments: `$onClick={actions.addValueAndMouseButton(1)}`.
 

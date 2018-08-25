@@ -48,8 +48,8 @@ const update = (action, state, props) => action._match({
 
 const render = (state, props) => (
   <div>
-    <Button $$onClick={actions.decrement}>DEC</Button>
-    <Button $$onClick={actions.add(+1)}>+1</Button>
+    <Button $onClick={actions.decrement}>DEC</Button>
+    <Button $onClick={actions.add(+1)}>+1</Button>
     <Button $onMouseUp={actions.addValuePlusMouseButton(1)}
             $onContextMenu={actions.cancelEvent}>+BUTTON</Button>
     <div>{state.value}</div>

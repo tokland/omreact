@@ -53,7 +53,7 @@ const props = {onFinish};
 
 const App = () => (
   <div>
-    <Component visible={true} component={ImperativeCounter} props={props} />
+    <Component visible={false} component={ImperativeCounter} props={props} />
     <Component visible={true} component={CounterIncrementFun} props={props} />
     <Component visible={true} component={CounterIncrementStringAction} props={props} />
     <Component visible={true} component={CounterIncrement} props={props} />

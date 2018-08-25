@@ -62,9 +62,9 @@ function component(name, { init, render, update, actions, lifecycles = {} }) {
 
       switch (prop.match(/^\$*/)[0].length) {
         case 1: // $onEvent -> pass arguments to action
-          return (...args) => this._dispatch(value(...args));
+          return (...args) => this._dispatch(_(value).isFunction() ? value(...args) : value);
         case 2: // $$onEvent -> don't pass arguments to action
-          return () => this._dispatch(value);
+          return () => this._dispatch(_(value).isFunction() ? value() : value);
         default:
           throw new Error("Invalid event prop: " + prop);
       }

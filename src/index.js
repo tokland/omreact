@@ -5,7 +5,6 @@ import {command, newState, composeActions, actionMatch, action} from './actions'
 import {sideEffect, eventPreventDefault, callProp} from './commands';
 
 export {
-  memoize,
   component,
   command,
   newState,
@@ -15,4 +14,5 @@ export {
   sideEffect,
   eventPreventDefault,
   callProp,
+  memoize,
 };

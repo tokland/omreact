@@ -29,9 +29,9 @@ const update = (action, state, props) => {
 
 const render = (state, props) => (
   <div>
-    <Button $$onClick={actions.add(-1)}>-1</Button>
-    <Button $$onClick={actions.add(+1)}>+1</Button>
-    <Button $$onClick={actions.reset}>RESET</Button>
+    <Button $onClick={actions.add(-1)}>-1</Button>
+    <Button $onClick={actions.add(+1)}>+1</Button>
+    <Button $onClick={actions.reset}>RESET</Button>
     <Button $onMouseUp={actions.addMouseButton}
             $onContextMenu={actions.cancelEvent}>+BUTTON</Button>
     <div>{state.value}</div>

@@ -38,9 +38,9 @@ const update = (action, state, props) => {
 
 const render = (state, props) => (
   <div>
-    <Button $$onClick={actions.decrement}>-1</Button>
-    <Button $$onClick={actions.increment}>+1</Button>
-    <Button $$onClick={actions.fetchRandom}>+RANDOM</Button>
+    <Button $onClick={actions.decrement}>-1</Button>
+    <Button $onClick={actions.increment}>+1</Button>
+    <Button $onClick={actions.fetchRandom}>+RANDOM</Button>
     <div>{state.value}</div>
     <div>{state.message}</div>
   </div>

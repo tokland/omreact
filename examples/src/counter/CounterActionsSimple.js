@@ -30,13 +30,13 @@ const update = (updateAction, state, props) => updateAction.match({
 
 const render = (state, props) => (
   <div>
-    <Button $$onClick={action("decrement")}>DEC</Button>
-    <Button $$onClick={action("add", +1)}>+1</Button>
-    <Button $$onClick={action("addOnePlusTwo")}>+1+2</Button>
-    <Button $$onClick={action("fetchRandom")}>+ASYNC_RANDOM(1..10)</Button>
+    <Button $onClick={action("decrement")}>DEC</Button>
+    <Button $onClick={action("add", +1)}>+1</Button>
+    <Button $onClick={action("addOnePlusTwo")}>+1+2</Button>
+    <Button $onClick={action("fetchRandom")}>+ASYNC_RANDOM(1..10)</Button>
     <Button $onMouseUp={action("addValueAndMouseButton", +1).withArgs}
             $onContextMenu={action("cancelEvent").withArgs}>+BUTTON</Button>
-    <Button $$onClick={action("notifyParent")}>Notify parent</Button>
+    <Button $onClick={action("notifyParent")}>Notify parent</Button>
     <div>{state.value}</div>
   </div>
 );

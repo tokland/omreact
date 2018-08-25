@@ -22,8 +22,8 @@ const update = (action, state, props) => {
 
 const render = (state, props) => (
   <div>
-    <Button $$onClick={actions.decrement}>-1</Button>
-    <Button $$onClick={actions.add(1)}>+1</Button>
+    <Button $onClick={actions.decrement}>-1</Button>
+    <Button $onClick={actions.add(1)}>+1</Button>
     <div>{state.value}</div>
   </div>
 );
