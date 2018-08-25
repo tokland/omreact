@@ -2,9 +2,9 @@
 
 Purely functional React components with local state.
 
-React.js is mainly functional, just render the whole view for a component from its state and don't bother with in-place updates of the DOM. However, it still promotes imperative code because of how `this.setState` works. `OmReact` is a thin abstraction layer over React.js that allows to write purely functional components that hold local state.
+React is mostly functional, just render the whole view for a component from its state, and don't bother with in-place updates of the DOM. However, it still promotes imperative code because of how `this.setState` works. `OmReact` is a thin abstraction layer over React.js that allows you to write purely functional components that hold local state.
 
-`OmReact` applies the [Elm architecture](https://guide.elm-lang.org/architecture/) and applies it to components with local state.
+`OmReact` applies the [Elm architecture](https://guide.elm-lang.org/architecture/) to React components with local state.
 
 ## Install
 
