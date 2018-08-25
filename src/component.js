@@ -48,11 +48,11 @@ function component(name, { init, render, update, actions, lifecycles = {} }) {
       }
 
       if (asyncActions) {
-        asyncActions.forEach(asyncAction => asyncAction.then(this._dispatch));
+        _(asyncActions).castArray().each(asyncAction => asyncAction.then(this._dispatch));
       }
 
       if (parentActions) {
-        parentActions.forEach(parentAction => parentAction.prop(...parentAction.args));
+        _(parentActions).castArray().each(parentAction => parentAction.prop(...parentAction.args));
       }
     }
 
@@ -65,6 +65,8 @@ function component(name, { init, render, update, actions, lifecycles = {} }) {
         case 1: // $onEvent -> pass arguments to action
           return (...args) => this._dispatch(_(value).isFunction() ? value(...args) : value);
         case 2: // $$onEvent -> don't pass arguments to action
+          // This is not really needed as we can check before dispatching or the user can simply
+          // ignore the event arguments. Also, we need some escaping mechanism, so $$prop -> $prop.
           return () => this._dispatch(_(value).isFunction() ? value() : value);
         default:
           throw new Error("Invalid event prop: " + prop);
