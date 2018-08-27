@@ -3,7 +3,7 @@ import memoize from 'memoize-weak';
 import _ from 'lodash';
 import {shallowEqual} from 'shouldcomponentupdate-children';
 
-function component(name, { init, render, update, actions, lifecycles = {} }) {
+function component(name, {init, render, update, actions, lifecycles = {}}) {
   return class OmReactComponent extends React.Component {
     static name = name || "OmReactComponent";
 
@@ -24,9 +24,9 @@ function component(name, { init, render, update, actions, lifecycles = {} }) {
       this._runUpdateAction(_.omit(this.initValue, ["state"]));
     }
 
-    componentWillUnmount() {
-      if (lifecycles.onUnmount) {
-        this._dispatch(lifecycles.onUnmount);
+    static getDerivedStateFromProps(nextProps, prevState) {
+      if (lifecycles.getDerivedStateFromProps) {
+        this._dispatch(lifecycles.getDerivedStateFromProps(nextProps, prevState));
       }
     }
 

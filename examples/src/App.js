@@ -1,17 +1,15 @@
 import React from 'react';
-import ImperativeCounter from './counter/ImperativeCounter';
-import CounterIncrement from './counter/CounterIncrement';
-import CounterIncrementFun from './counter/CounterIncrementFun';
-import CounterIncrementStringAction from './counter/CounterIncrementStringAction';
-import CounterSimple from './counter/CounterSimple';
-import CounterSimpleAdt from './counter/CounterSimpleAdt';
-import CounterAddRandom from './counter/CounterAddRandom';
-import CounterComplex from './counter/CounterComplex';
-import CounterActionsSimple from './counter/CounterActionsSimple';
-import CounterActionsWithProxy from './counter/CounterActionsWithProxy';
+import _ from 'lodash';
+
+const requireCounters = require.context("./counter/", true, /^(.*\.(js$)$)/);
+const counters = _(requireCounters.keys())
+  .map(requireCounters)
+  .map(c => c.default)
+  .sortBy("name")
+  .value();
 
 const onFinish = (...args) => {
-  console.log("onFinish called", ...args);
+  alert(`onFinish called: ${args}`);
 };
 
 class Component extends React.PureComponent {
@@ -35,11 +33,9 @@ class Component extends React.PureComponent {
       <div style={{border: "1px solid black", padding: 5, margin: 5}}>
         <div>
           {WrappedComponent.name}
-          {/*
           <button onClick={isVisible ? this.unmount : this.mount}>
             {isVisible ? "UnMount" : "Mount"}
           </button>
-          */}
         </div>
 
         <div>
@@ -54,16 +50,9 @@ const props = {onFinish};
 
 const App = () => (
   <div>
-    <Component visible={false} component={ImperativeCounter} props={props} />
-    <Component visible={true} component={CounterIncrementFun} props={props} />
-    <Component visible={true} component={CounterIncrementStringAction} props={props} />
-    <Component visible={true} component={CounterIncrement} props={props} />
-    <Component visible={true} component={CounterSimple} props={props} />
-    <Component visible={true} component={CounterAddRandom} props={props} />
-    <Component visible={true} component={CounterActionsSimple} props={props} />
-    <Component visible={true} component={CounterSimpleAdt} props={props} />
-    <Component visible={true} component={CounterActionsWithProxy} propx={props} />
-    <Component visible={true} component={CounterComplex} props={props} />
+    {counters.map(Counter =>
+      <Component key={Counter.name} visible={true} component={Counter} props={props} />
+    )}
   </div>
 );
 

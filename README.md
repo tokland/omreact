@@ -54,6 +54,8 @@ Options:
 
 - `render(state, props): React.element` with `$eventProp={action | args => action}`: Like a React `render` function except that event props are $-prefixed. An action can be either a plain value or a pure function. `$` is a valid JS character for variable names, this way we don't need to use a custom JSX babel transform. `@onClick={...}` would be probably nicer, though.
 
+- `lifecycles: Object`: Object of {lifeCycleName: action}. More on lifecyle section.
+
 ### Commands
 
 A *command* may have any of those three keys:
@@ -147,6 +149,14 @@ const render = (state, props) => (
 
 export default component("CounterParentNotifications", {init, render, update});
 ```
+
+### Component Lifecycle
+
+`OmReact` exposes some of [React lifecycle methods](https://reactjs.org/docs/react-component.html). Use the optional argument `lifecycles` to `omreact.component` and pass the action to execute. Note that the action must a function if the lifecyle passes arguments. Supported methods:
+
+* `getDerivedStateFromProps((nextProps, prevState)`.
+
+Note that `componentDidMount` is not needed, simply pass an initial command in `init`.
 
 ### Some notes on actions
 

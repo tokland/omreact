@@ -12,6 +12,7 @@ const actions = {
   add: memoize(value => ({type: "add", value})),
   fetchRandom: {type: "fetchRandom"},
   showError: error => ({type: "showError", error}),
+  onUnmount: {type: "unmount"},
 };
 
 const update = (action, state, props) => {
@@ -31,6 +32,9 @@ const update = (action, state, props) => {
       });
     case "showError":
       return command({state: {...state, message: `Error: ${action.error}`}});
+    case "unmount":
+      alert("You unmounted me!");
+      return command({});
     default:
       throw new Error(`[update] Unknown action: ${action}`);
   }
@@ -46,4 +50,6 @@ const render = (state, props) => (
   </div>
 );
 
-export default component("CounterComplex", {init, render, update});
+const lifecycles = {onUnmount: actions.onUnmount};
+
+export default component("CounterComplex", {init, render, update, lifecycles});
