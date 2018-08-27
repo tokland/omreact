@@ -1,10 +1,8 @@
-# OmReact
+# OmReact: Purely functional React components with local state
 
-Purely functional React components with local state.
+React is mostly a functional framework, but still promotes imperative code because `this.setState` works by performing with side-effects. `OmReact` is a thin abstraction layer over React.js that allows you to write purely functional components that hold local state.
 
-React is mostly a functional framework, but still promotes imperative code because of how `this.setState` works. `OmReact` is a thin abstraction layer over React.js that allows you to write purely functional components that hold local state.
-
-`OmReact` applies the [Elm architecture](https://guide.elm-lang.org/architecture/) to React components with local state. Instead of a bunch of function/methods that update the state, define a single `update` function that takes actions that return the new component state.
+`OmReact` applies the [Elm architecture](https://guide.elm-lang.org/architecture/) to React components. Instead of a bunch of function/methods that update the state, define a single `update` function that takes an action and returns the new component status (state + async actions)
 
 ## Install
 
@@ -41,7 +39,7 @@ const render = (state, props) => (
   </div>
 );
 
-export default component("CounterSimple", {init, render, update});
+export default component("MyCounterSimple", {init, render, update});
 ```
 
 Event props are not functions with side-effects, but actions values that are automatically passed to the `update` function.
@@ -68,7 +66,7 @@ Options:
 
 - `render(state, props): React.element` with `$eventProp={action | args => action}`: Like a React `render` function except that event props are $-prefixed with the action. An action can be either a plain value or a pure function. `$` is a valid JS character for variable names, this way we don't need to use a custom JSX babel transform. `@onClick={...}` would be probably nicer, though.
 
-#### Command
+### Commands
 
 A command may have any of those three keys:
 
@@ -76,14 +74,13 @@ A command may have any of those three keys:
   - `asyncActions`: An array of promises that resolve into actions.
   - `parentActions`: An array of parent actions to notify the parent component through props.
 
-### Update state (`state`)
+#### Update state (`state`)
 
 Return the new state (full state, not partial state like you do in `this.setState`).
 
+#### Side-effects (`asyncActions`)
 
-### Side-effects (`asyncActions`)
-
-When creating an `OmReact` component, you don't have access to `setState`. To write asynchronous code (timers, requests), you return a command with `asyncActions`, an array of promises that resolve into some other actions. An example:
+When creating an `OmReact` component, you don't have access to `setState`. To write asynchronous code (timers, requests), you return instead a command containing asynchronous actions (`asyncActions`), an array of promises that resolve into some other action. An example:
 
 ```js
 import React from 'react';
@@ -121,12 +118,12 @@ const render = (state, props) => (
   </div>
 );
 
-export default component("CounterSideEffects", {init, render, update});
+export default component("CounterWithSideEffects", {init, render, update});
 ```
 
-### Notify the parent component (`parentActions`)
+#### Notify the parent component (`parentActions`)
 
-React components report to the their parents using props. While there is nothing preventing you from directly calling a prop in an `omReact`, to keep it purely functional, you should use `OmReact` infrastructure. Pass `parentActions` with an array of `callProp` entries. Example:
+React components report to their parents using props. While there is nothing preventing you from directly calling a prop in an `OmReact` component, you can keep it purely functional returning a command with `parentActions` containing an array of `callProp` entries. Example:
 
 ```js
 import React from 'react';
@@ -165,9 +162,13 @@ export default component("CounterParentNotifications", {init, render, update});
 
 ### Some notes on actions
 
-#### Typical actions
+#### Typical action signatures
+
+An action can have no arguments, *constructor arguments*, *event arguments*, or both.
 
 ```js
+import {memoize} from 'omreact';
+
 const actions = {
   increment: {type: "increment"},
   add: memoize(value => ({type: "add", value})),
@@ -178,14 +179,14 @@ const actions = {
 
 Use like this on event props:
 
-- `actions.increment`: An _object_, use it when you need no arguments. Example `$onClick={actions.increment}`. The dispatcher will see that it's not a function and won't try to call it with the event arguments.
-- `actions.add`: A _1-time callable function_ that takes only constructor arguments. Example: `$onClick={actions.add(1)}`. This function should be memoized, as we discussed before.
+- `actions.increment`: An _object_, use it when you need no arguments. Example `$onClick={actions.increment}`. The dispatcher will see that it's not a function and won't call it with the event arguments.
+- `actions.add`: A _1-time callable function_ that takes only action constructor arguments. Example: `$onClick={actions.add(1)}`. This function should be memoized.
 - `actions.addMouseButton`: A _1-time callable function_ that takes only event arguments: Example: `$onClick={actions.addMouseButton}`. This function should not be memoized.
 - `actions.addValueAndMouseButton`: A _2-time callable function_ that takes both constructor and event arguments: `$onClick={actions.addValueAndMouseButton(1)}`. The first function must be memoized.
 
-#### Memoization
+#### Memoize actions
 
-It's a well known caveat that you should never pass newly created values as props. This applies to arrays, objects or arrow functions, there is no problem with strings, since `===` works fine on them. Otherwise, a React component will think those props changed and will issue an unnecessary re-render. Extract them to `const` values to avoid this problem. Also, use memoization (the library already provides a helper for that: `memoize`) in action constructors. Example:
+It's a well known caveat that you should never pass newly created values as props, otherwise a React component will think those props changed and will issue an unnecessary re-render. This applies to arrays, objects or arrow functions (no problem with strings, `===` works fine on them).  Extract prop values to `const` values to avoid this problem. Also, use memoization (the library already provides a helper for that: `memoize`) in action constructors. Example:
 
 ```js
 import {component, memoize} from 'omreact';
@@ -198,11 +199,11 @@ const actions = {
 
 #### Actions are agnostic
 
-An action is any object (or function, if has constructor/event arguments) you want. So if you don't like the overhead of previosly defining which the actions are, you are not forced to do so, create your own abstractions using strings, arrays, objects, get fancy with [proxy objects](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy), whatever works for you.
+An action can be any any object or function, if it has constructor/event arguments. Create your own abstractions using actions as strings, arrays, objects, or even get fancy with [proxy objects](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy), whatever works for you.
 
 Check the [examples](examples/src) to see some alternative ways:
 
-- Using a [helper function](https://github.com/tokland/omreact/blob/master/examples/src/counter/CounterActionsSimple.js) to build actions from strings with no need to define them.
+- Using a [helper function](https://github.com/tokland/omreact/blob/master/examples/src/counter/CounterActionsSimple.js) that builds actions from a string and constructor arguments.
 
 - Using [ADT constructors](https://github.com/tokland/omreact/blob/master/examples/src/counter/CounterSimpleAdt.js)
 
