@@ -2,9 +2,9 @@
 
 Purely functional React components with local state.
 
-React is mostly functional, just render the whole view for a component from its state, and don't bother with in-place updates of the DOM. However, it still promotes imperative code because of how `this.setState` works. `OmReact` is a thin abstraction layer over React.js that allows you to write purely functional components that hold local state.
+React is mostly a functional framework, but still promotes imperative code because of how `this.setState` works. `OmReact` is a thin abstraction layer over React.js that allows you to write purely functional components that hold local state.
 
-`OmReact` applies the [Elm architecture](https://guide.elm-lang.org/architecture/) to React components with local state.
+`OmReact` applies the [Elm architecture](https://guide.elm-lang.org/architecture/) to React components with local state. Instead of a bunch of function/methods that update the state, define a single `update` function that takes actions that return the new component state.
 
 ## Install
 
@@ -20,28 +20,23 @@ $ yarn add omreact
 import React from 'react';
 import {component, command} from 'omreact';
 
-const actions = {
-  decrement: ev => ({type: "decrement"}),
-  increment: ev => ({type: "increment"}),
-};
-
 const init = command({state: {value: 0}});
 
 const update = (action, state, props) => {
-  switch (action.type) {
+  switch (action) {
     case "decrement":
       return command({state: {value: state.value - 1}});
     case "increment":
       return command({state: {value: state.value + 1}});
     default:
-      throw new Error(`Unknown action: ${JSON.stringify(action)}`);
+      throw new Error(`Unknown action: ${action}`);
   }
 };
 
 const render = (state, props) => (
   <div>
-    <button $onClick={actions.decrement}>-1</button>
-    <button $onClick={actions.increment}>+1</button>
+    <button $onClick="decrement">-1</button>
+    <button $onClick="increment">+1</button>
     <div>{state.value}</div>
   </div>
 );
@@ -49,15 +44,13 @@ const render = (state, props) => (
 export default component("CounterSimple", {init, render, update});
 ```
 
+Event props are not functions with side-effects, but actions values that are automatically passed to the `update` function.
+
 ### Examples page
 
 ```sh
-$ cd examples
-$ yarn install
-$ yarn start
+$ cd examples && yarn install && yarn start
 ```
-
-Go to `http://localhost:3000`.
 
 ## Development
 
@@ -71,9 +64,9 @@ Options:
 
 - `init: command | state => command` command: Equivalent to using `this.state = ...` and ` componentDidMount` + `this.setState` in a typical React component.
 
-- `update(action, state, props): command`: Takes an action and current `state`/`props` and return a command to perform.
+- `update(action, state, props): command`: Take an action and current `state`/`props` and return a command to perform.
 
-- `render(state, props: React.element` with `$eventProp={action | args => action}`: Like a React `render` function except that you should prefix event props with a `$` and pass the action to be executed. An action can be either a plain value or a pure function. Why `$`? It's a valid JS character for variable names, this way we don't need to use a custom JSX babel transform (although `@onClick={...}` would be probably nicer).
+- `render(state, props): React.element` with `$eventProp={action | args => action}`: Like a React `render` function except that event props are $-prefixed with the action. An action can be either a plain value or a pure function. `$` is a valid JS character for variable names, this way we don't need to use a custom JSX babel transform. `@onClick={...}` would be probably nicer, though.
 
 #### Command
 
@@ -83,9 +76,14 @@ A command may have any of those three keys:
   - `asyncActions`: An array of promises that resolve into actions.
   - `parentActions`: An array of parent actions to notify the parent component through props.
 
-### Side-effects
+### Update state (`state`)
 
-`OmrRact` does not provide access to the `setState` method of the component. Instead, you write asynchronous code (timers, requests) using `asyncActions` of a command, an array of promises that resolve into some other actions. An example:
+Return the new state (full state, not partial state like you do in `this.setState`).
+
+
+### Side-effects (`asyncActions`)
+
+When creating an `OmReact` component, you don't have access to `setState`. To write asynchronous code (timers, requests), you return a command with `asyncActions`, an array of promises that resolve into some other actions. An example:
 
 ```js
 import React from 'react';
@@ -126,9 +124,9 @@ const render = (state, props) => (
 export default component("CounterSideEffects", {init, render, update});
 ```
 
-### Parent actions
+### Notify the parent component (`parentActions`)
 
-React components report to the their parents using props. This is JS, there is nothing preventing you from directly calling props (i.e `props.onClick(someData)` in the update function, but `OmReact`module provides a functional way to do it: use the `parentActions` key in a command, passing an array of `callProp` entries. Example:
+React components report to the their parents using props. While there is nothing preventing you from directly calling a prop in an `omReact`, to keep it purely functional, you should use `OmReact` infrastructure. Pass `parentActions` with an array of `callProp` entries. Example:
 
 ```js
 import React from 'react';
@@ -167,9 +165,27 @@ export default component("CounterParentNotifications", {init, render, update});
 
 ### Some notes on actions
 
+#### Typical actions
+
+```js
+const actions = {
+  increment: {type: "increment"},
+  add: memoize(value => ({type: "add", value})),
+  addMouseButton: ev => ({type: "addMouseButton", ev}),
+  addValueAndMouseButton: memoize(value => ev => ({type: "add", value, addValueAndMouseButton})),
+}
+```
+
+Use like this on event props:
+
+- `actions.increment`: An _object_, use it when you need no arguments. Example `$onClick={actions.increment}`. The dispatcher will see that it's not a function and won't try to call it with the event arguments.
+- `actions.add`: A _1-time callable function_ that takes only constructor arguments. Example: `$onClick={actions.add(1)}`. This function should be memoized, as we discussed before.
+- `actions.addMouseButton`: A _1-time callable function_ that takes only event arguments: Example: `$onClick={actions.addMouseButton}`. This function should not be memoized.
+- `actions.addValueAndMouseButton`: A _2-time callable function_ that takes both constructor and event arguments: `$onClick={actions.addValueAndMouseButton(1)}`. The first function must be memoized.
+
 #### Memoization
 
-It's a well known caveat in React that you should never pass newly created values (arrays, objects or arrow functions) as props, as the React component will think those props changed and will issue an unnecessary re-render. Always extract them to `const` values. Also, use memoization (the library already provides a helper for that: `memoize`) in action constructors. Example:
+It's a well known caveat that you should never pass newly created values as props. This applies to arrays, objects or arrow functions, there is no problem with strings, since `===` works fine on them. Otherwise, a React component will think those props changed and will issue an unnecessary re-render. Extract them to `const` values to avoid this problem. Also, use memoization (the library already provides a helper for that: `memoize`) in action constructors. Example:
 
 ```js
 import {component, memoize} from 'omreact';
@@ -180,35 +196,15 @@ const actions = {
 };
 ```
 
-#### Agnostic actions
+#### Actions are agnostic
 
-When looking on the examples, you may think there is a little bit of boilerplate on the actions constructors. No problem, you can use any actions infrastructure you want. Create individual function, use strings, arrays, objects, get fancy with [proxy objects](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy), whatever works for you.
+An action is any object (or function, if has constructor/event arguments) you want. So if you don't like the overhead of previosly defining which the actions are, you are not forced to do so, create your own abstractions using strings, arrays, objects, get fancy with [proxy objects](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy), whatever works for you.
 
-Check the [examples](examples/src) to see some alternative ways of creating actions:
+Check the [examples](examples/src) to see some alternative ways:
 
-- Using helper `omreact.action` to build actions from strings and arguments. [Link](https://github.com/tokland/omreact/blob/master/examples/src/counter/CounterActionsSimple.js).
+- Using a [helper function](https://github.com/tokland/omreact/blob/master/examples/src/counter/CounterActionsSimple.js) to build actions from strings with no need to define them.
 
-- Using ADT constructors. [Link](https://github.com/tokland/omreact/blob/master/examples/src/counter/CounterSimpleAdt.js)
-
-#### How do actions usually look?
-
-They use to have these 4 shapes.:
-
-```js
-const actions = {
-  increment: {type: "increment"},
-  add: value => ({type: "add", value}),
-  addMouseButton: ev => ({type: "addMouseButton", ev}),
-  addValueAndMouseButton: value => ev => ({type: "add", value, addValueAndMouseButton}),
-}
-```
-
-And they are called this way:
-
-- An _object_: Use it when you need no arguments. Example `$onClick={actions.increment}`. The dispatcher will see that it's not a function and won't try to call it with the event arguments.
-- A _1-time callable function_ that takes only constructor arguments. Example: `$onClick={actions.add(1)}`. This actions should be memoized, as we discussed before.
-- A _1-time callable function_ that takes only event arguments: Example: `$onClick={actions.addMouseButton}`. This action should not be memoized.
-- A _2-time callable function_ that takes both constructor and event arguments: `$onClick={actions.addValueAndMouseButton(1)}`. The first call should be memoized.
+- Using [ADT constructors](https://github.com/tokland/omreact/blob/master/examples/src/counter/CounterSimpleAdt.js)
 
 ### Other examples
 
