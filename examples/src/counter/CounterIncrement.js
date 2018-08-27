@@ -28,4 +28,4 @@ const render = (state, props) => (
   </div>
 );
 
-export default component("CounterWithArgs", {init, render, update});
+export default component("CounterWithActionConstructorArgs", {init, render, update});

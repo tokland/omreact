@@ -52,4 +52,4 @@ const render = (state, props) => (
 
 const lifecycles = {onUnmount: actions.onUnmount};
 
-export default component("CounterComplex", {init, render, update, lifecycles});
+export default component("CounterRandomWithFeedback", {init, render, update, lifecycles});

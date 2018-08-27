@@ -1,7 +1,7 @@
 import React from 'react';
 import _ from 'lodash';
 
-const requireCounters = require.context("./counter/", true, /^(.*\.(js$)$)/);
+const requireCounters = require.context("./counter/", true, /^(.*\.js$)/);
 const counters = _(requireCounters.keys())
   .map(requireCounters)
   .map(c => c.default)
@@ -13,34 +13,13 @@ const onFinish = (...args) => {
 };
 
 class Component extends React.PureComponent {
-  state = {isVisible: true};
-
-  mount = () => {
-    this.setState({isVisible: true});
-  }
-
-  unmount = () => {
-    this.setState({isVisible: false});
-  }
-
   render() {
-    const {isVisible} = this.state;
-    const {visible, props, component: WrappedComponent} = this.props;
-    if (!visible)
-      return null;
+    const {props, component: WrappedComponent} = this.props;
     
     return (
       <div style={{border: "1px solid black", padding: 5, margin: 5}}>
-        <div>
-          {WrappedComponent.name}
-          <button onClick={isVisible ? this.unmount : this.mount}>
-            {isVisible ? "UnMount" : "Mount"}
-          </button>
-        </div>
-
-        <div>
-          {isVisible && <WrappedComponent {...props} />}
-        </div>
+        {WrappedComponent.name}
+        <WrappedComponent {...props} />
       </div>
     );
   }

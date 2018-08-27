@@ -56,4 +56,4 @@ const render = (state, props) => (
   </div>
 );
 
-export default component("CounterSimpleAdt",     {init, render, update});
+export default component("CounterSimpleActionsWithAdt", {init, render, update});

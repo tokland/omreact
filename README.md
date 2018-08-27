@@ -10,20 +10,20 @@ React is mostly a functional framework, but it still promotes imperative code si
 $ yarn add omreact
 ```
 
-## A simple example: a counter
+## Example: a counter
 
 ```js
 import React from 'react';
-import {component, command} from 'omreact';
+import {component, newState} from 'omreact';
 
-const init = command({state: {value: 0}});
+const init = newState({value: 0});
 
 const update = (action, state, props) => {
   switch (action) {
     case "decrement":
-      return command({state: {value: state.value - 1}});
+      return newState({value: state.value - 1});
     case "increment":
-      return command({state: {value: state.value + 1}});
+      return newState({value: state.value + 1});
     default:
       throw new Error(`Unknown action: ${action}`);
   }
@@ -40,7 +40,11 @@ const render = (state, props) => (
 export default component("MyCounterSimple", {init, render, update});
 ```
 
-## Component overview
+The same component, using `React.Component`: [ImperativeCounter.js](examples/src/counter/ImperativeCounter.js)
+
+##  OnReact component
+
+### Component overview
 
 ![Diagram](https://github.com/tokland/omreact/blob/master/OmReact.png)
 
@@ -54,13 +58,13 @@ Options:
 
 - `render(state, props): React.element` with `$eventProp={action | args => action}`: Like a React `render` function except that event props are $-prefixed. An action can be either a plain value or a pure function. `$` is a valid JS character for variable names, this way we don't need to use a custom JSX babel transform. `@onClick={...}` would be probably nicer, though.
 
-- `lifecycles: Object`: Object of {lifeCycleName: action}. More on lifecyle section.
+- `lifecycles: {[key: lifeCycleName]: action}`: More on the lifecyle section.
 
 ### Commands
 
-A *command* may have any of those three keys:
+A *command* returned by `init` or `update`may have any of those three keys:
 
-  - `state` (any): The new state of the component.
+  - `state` (any): The new state of the component. Since it's quite typical that a reducer only changes the internal component state, a function `newState(state => ({state});` is exported.
   - `asyncActions` (Array<Promise>): An array of promises that resolve into actions.
   - `parentActions` (Array<Object>): An array of parent actions to notify the parent component through props.
 
@@ -154,15 +158,15 @@ export default component("CounterParentNotifications", {init, render, update});
 
 `OmReact` exposes some of [React lifecycle methods](https://reactjs.org/docs/react-component.html). Use the optional argument `lifecycles` to `omreact.component` and pass the action to execute. Note that the action must a function if the lifecyle passes arguments. Supported methods:
 
-* `getDerivedStateFromProps((nextProps, prevState)`.
+* [getDerivedStateFromProps(nextProps, prevState)](https://reactjs.org/docs/react-component.html#static-getderivedstatefromprops)
 
-Note that `componentDidMount` is not needed, simply pass an initial command in `init`.
+Note that [componentDidMount](https://reactjs.org/docs/react-component.html#componentdidmount) is not needed, simply pass an initial command in `init`.
 
-### Some notes on actions
+### Actions
 
 #### Typical action signatures
 
-An action can have no arguments, *constructor arguments*, *event arguments*, or both.
+An action can have no arguments, *constructor arguments*, *event arguments*, or both. A typical actions object may look like this:
 
 ```js
 import {memoize} from 'omreact';
@@ -180,7 +184,7 @@ Use like this on event props:
 - `actions.increment`: An _object_, use it when you need no arguments. Example `$onClick={actions.increment}`. The dispatcher will see that it's not a function and won't call it with the event arguments.
 - `actions.add`: A _1-time callable function_ that takes only action constructor arguments. Example: `$onClick={actions.add(1)}`. This function should be memoized.
 - `actions.addMouseButton`: A _1-time callable function_ that takes only event arguments: Example: `$onClick={actions.addMouseButton}`. This function should not be memoized.
-- `actions.addValueAndMouseButton`: A _2-time callable function_ that takes both constructor and event arguments: `$onClick={actions.addValueAndMouseButton(1)}`. The first function must be memoized.
+- `actions.addValueAndMouseButton`: A _2-time callable function_ that takes both constructor and event arguments: `$onClick={actions.addValueAndMouseButton(1)}`. The first function should be memoized.
 
 #### Memoize actions
 
@@ -201,16 +205,18 @@ An action can be any any object or function, if it has constructor/event argumen
 
 Check the [examples](examples/src) to see some alternative ways:
 
-- Using a [helper function](https://github.com/tokland/omreact/blob/master/examples/src/counter/CounterActionsSimple.js) that builds actions from a string and constructor arguments.
+- Using a [function](https://github.com/tokland/omreact/blob/master/examples/src/counter/CounterActionsSimple.js) that builds actions from a string and constructor arguments.
 
-- Using [ADT constructors](https://github.com/tokland/omreact/blob/master/examples/src/counter/CounterSimpleAdt.js)
+- Using pre-defined [ADT constructors](https://github.com/tokland/omreact/blob/master/examples/src/counter/CounterSimpleAdt.js).
 
-- Using [Proxy constructors](https://github.com/tokland/omreact/blob/master/examples/src/counter/CounterActionsWithProxy.js)
+- Using on-the-fly [Proxy constructors](https://github.com/tokland/omreact/blob/master/examples/src/counter/CounterActionsWithProxy.js).
 
 ## Examples page
 
 ```sh
-$ cd examples && yarn install && yarn start
+$ cd examples
+$ yarn install
+$ yarn start
 ```
 
 Check the [examples](examples/src) directory in the repository.
