@@ -8,6 +8,7 @@ import CounterSimpleAdt from './counter/CounterSimpleAdt';
 import CounterAddRandom from './counter/CounterAddRandom';
 import CounterComplex from './counter/CounterComplex';
 import CounterActionsSimple from './counter/CounterActionsSimple';
+import CounterActionsWithProxy from './counter/CounterActionsWithProxy';
 
 const onFinish = (...args) => {
   console.log("onFinish called", ...args);
@@ -61,6 +62,7 @@ const App = () => (
     <Component visible={true} component={CounterAddRandom} props={props} />
     <Component visible={true} component={CounterActionsSimple} props={props} />
     <Component visible={true} component={CounterSimpleAdt} props={props} />
+    <Component visible={true} component={CounterActionsWithProxy} propx={props} />
     <Component visible={true} component={CounterComplex} props={props} />
   </div>
 );

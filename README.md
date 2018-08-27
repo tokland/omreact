@@ -1,8 +1,8 @@
 > Purely functional React components with local state
 
-React is mostly a functional framework, but still promotes imperative code because the component updated (`this.setState`) works by performing side-effects. `OmReact` is a thin abstraction layer over React.js to write purely functional React components that hold local state.
+React is mostly a functional framework, but it still promotes imperative code since the component updater (`this.setState`) works by performing side-effects. `OmReact` is a thin abstraction layer over React.js to write purely functional React components that hold local state.
 
-`OmReact` applies the [Elm architecture](https://guide.elm-lang.org/architecture/) to React components. Instead of a bunch of function/methods with side-effects called from events, define a single `update` function that takes a pure action and returns a new component status (state + async actions)
+`OmReact` applies the [Elm architecture](https://guide.elm-lang.org/architecture/) to React components. Define a single `update` function that takes an action and returns the new component status (state + async actions).
 
 ## Install
 
@@ -48,19 +48,19 @@ export default component("MyCounterSimple", {init, render, update});
 
 Options:
 
-- `init: command | state => command` command: Equivalent to using `this.state = ...` and ` componentDidMount` + `this.setState` in a typical React component.
+- `init: command | state => command`: Equivalent to using `this.state = ...` and ` componentDidMount` + `this.setState` in a React component.
 
 - `update(action, state, props): command`: Take an action and current `state`/`props` and return a command to perform.
 
-- `render(state, props): React.element` with `$eventProp={action | args => action}`: Like a React `render` function except that event props are $-prefixed with the action. An action can be either a plain value or a pure function. `$` is a valid JS character for variable names, this way we don't need to use a custom JSX babel transform. `@onClick={...}` would be probably nicer, though.
+- `render(state, props): React.element` with `$eventProp={action | args => action}`: Like a React `render` function except that event props are $-prefixed. An action can be either a plain value or a pure function. `$` is a valid JS character for variable names, this way we don't need to use a custom JSX babel transform. `@onClick={...}` would be probably nicer, though.
 
 ### Commands
 
-A command may have any of those three keys:
+A *command* may have any of those three keys:
 
-  - `state`: The new state of the component.
-  - `asyncActions`: An array of promises that resolve into actions.
-  - `parentActions`: An array of parent actions to notify the parent component through props.
+  - `state` (any): The new state of the component.
+  - `asyncActions` (Array<Promise>): An array of promises that resolve into actions.
+  - `parentActions` (Array<Object>): An array of parent actions to notify the parent component through props.
 
 #### Update state (`state`)
 
@@ -194,6 +194,8 @@ Check the [examples](examples/src) to see some alternative ways:
 - Using a [helper function](https://github.com/tokland/omreact/blob/master/examples/src/counter/CounterActionsSimple.js) that builds actions from a string and constructor arguments.
 
 - Using [ADT constructors](https://github.com/tokland/omreact/blob/master/examples/src/counter/CounterSimpleAdt.js)
+
+- Using [Proxy constructors](https://github.com/tokland/omreact/blob/master/examples/src/counter/CounterActionsWithProxy.js)
 
 ## Examples page
 
