@@ -1,8 +1,8 @@
-# OmReact: Purely functional React components with local state
+> Purely functional React components with local state
 
-React is mostly a functional framework, but still promotes imperative code because `this.setState` works by performing with side-effects. `OmReact` is a thin abstraction layer over React.js that allows you to write purely functional components that hold local state.
+React is mostly a functional framework, but still promotes imperative code because the component updated (`this.setState`) works by performing side-effects. `OmReact` is a thin abstraction layer over React.js to write purely functional React components that hold local state.
 
-`OmReact` applies the [Elm architecture](https://guide.elm-lang.org/architecture/) to React components. Instead of a bunch of function/methods that update the state, define a single `update` function that takes an action and returns the new component status (state + async actions)
+`OmReact` applies the [Elm architecture](https://guide.elm-lang.org/architecture/) to React components. Instead of a bunch of function/methods with side-effects called from events, define a single `update` function that takes a pure action and returns a new component status (state + async actions)
 
 ## Install
 
@@ -10,9 +10,7 @@ React is mostly a functional framework, but still promotes imperative code becau
 $ yarn add omreact
 ```
 
-## Examples
-
-### A simple example: a counter
+## A simple example: a counter
 
 ```js
 import React from 'react';
@@ -42,17 +40,7 @@ const render = (state, props) => (
 export default component("MyCounterSimple", {init, render, update});
 ```
 
-Event props are not functions with side-effects, but actions values that are automatically passed to the `update` function.
-
-### Examples page
-
-```sh
-$ cd examples && yarn install && yarn start
-```
-
-## Development
-
-### Component overview
+## Component overview
 
 ![Diagram](https://github.com/tokland/omreact/blob/master/OmReact.png)
 
@@ -207,6 +195,10 @@ Check the [examples](examples/src) to see some alternative ways:
 
 - Using [ADT constructors](https://github.com/tokland/omreact/blob/master/examples/src/counter/CounterSimpleAdt.js)
 
-### Other examples
+## Examples page
+
+```sh
+$ cd examples && yarn install && yarn start
+```
 
 Check the [examples](examples/src) directory in the repository.
