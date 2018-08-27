@@ -1,13 +1,31 @@
 import React from 'react';
-import {Button} from '../helpers';
-import {component, command, newState, composeActions, action     } from 'omreact';
+import {Button, getRandomNumber} from '../helpers';
+import {component, command, newState, composeActions, memoize} from 'omreact';
 import {eventPreventDefault, callProp} from 'omreact/commands';
 
-const getRandomNumber = (min, max) => {
-  return fetch("https://qrng.anu.edu.au/API/jsonI.php?length=1&type=uint16")
-    .then(res => res.json())
-    .then(json => (json.data[0] % (max - min + 1)) + min);
+function actionMatch(reducers) {
+  const reducer = reducers[this.type];
+
+  if (reducer) {
+    return reducer(...this.args);
+  } else {
+    throw new Error("Action type not defined in the update function: " + this.type);
+  }
 };
+
+const action = memoize((type, ...args) => {
+  return {
+    type: type,
+    args: args,
+    match: actionMatch,
+    withArgs: (...eventArgs) => ({
+      type: type,
+      args: args.concat(eventArgs),
+      match: actionMatch,
+    }),
+  };
+});
+
 
 const init = command({state: {value: 0}});
 
@@ -41,4 +59,4 @@ const render = (state, props) => (
   </div>
 );
 
-export default component("CounterFunctionActions", {init, render, update});
+export default component("CounterUsingActionFunctionCreator", {init, render, update});
