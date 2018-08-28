@@ -39,6 +39,7 @@
     "@babel/plugin-proposal-class-properties": "^7.0.0-rc.1",
     "lodash": "^4.17.10",
     "memoize-weak": "^1.0.2",
+    "prop-types": "^15.6.2",
     "shouldcomponentupdate-children": "^1.1.0"
   },
   "peerDependencies": {

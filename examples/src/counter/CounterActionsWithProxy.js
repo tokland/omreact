@@ -1,6 +1,6 @@
 import React from 'react';
-import {Button, getRandomNumber} from '../helpers';
-import {component, command, newState, memoize} from 'omreact';
+import {Button} from '../helpers';
+import {component, newState, memoize} from 'omreact';
 
 function actionMatch(reducers) {
   return reducers[this.type](...this.args);

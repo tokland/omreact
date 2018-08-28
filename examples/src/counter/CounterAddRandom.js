@@ -22,7 +22,7 @@ const update = (action, state, props) => {
     case "fetchRandom":
       return command({asyncActions: [getPromiseRandomNumber(1, 10).then(actions.add)]});
     default:
-      throw new Error(`[update] Action to implemented: ${JSON.stringify(action)}`);
+      throw new Error(`Action not implemented: ${JSON.stringify(action)}`);
   }
 };
 

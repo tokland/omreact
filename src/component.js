@@ -1,7 +1,7 @@
 import React from 'react';
 import memoize from 'memoize-weak';
 import _ from 'lodash';
-import {shallowEqual} from 'shouldcomponentupdate-children';
+import {shallowEqual, shallowEqualWithoutReactElements} from 'shouldcomponentupdate-children';
 
 function component(name, {
       init,
@@ -10,7 +10,7 @@ function component(name, {
       actions,
       lifecycles = {},
       propTypes = {},
-      defaultProps = {}
+      defaultProps = {},
     }) {
   return class OmReactComponent extends React.Component {
     static name = name || "OmReactComponent";
@@ -32,6 +32,16 @@ function component(name, {
 
     componentDidMount() {
       this._runUpdateAction(_.omit(this.initValue, ["state"]));
+    }
+
+    componentDidUpdate(prevProps) {
+      if (lifecycles.propsChanged) {
+        const propsChanged = !shallowEqualWithoutReactElements(prevProps, this.props);
+        //console.log("props", propsChanged, prevProps, "->", this.props);
+        if (propsChanged) {
+          this._dispatch(lifecycles.propsChanged(prevProps));
+        }
+      }
     }
 
     _dispatch(action) {

@@ -152,7 +152,9 @@ export default component("CounterParentNotifications", {init, render, update});
 
 ### Component Lifecycle
 
-Note that [componentDidMount](https://reactjs.org/docs/react-component.html#componentdidmount) is not needed, simply pass an initial command in `init`.
+Implemented lifecycle values:
+
+* `propsChanged: (prevProps) => action`. Called any time props change.
 
 ### Actions
 

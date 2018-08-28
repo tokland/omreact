@@ -16,7 +16,7 @@ const update = (action, state, props) => {
     case "add":
       return command({state: {value: state.value + action.value}});
     default:
-      throw new Error(`[update] Action to implemented: ${JSON.stringify(action)}`);
+      throw new Error(`Action not implemented: ${JSON.stringify(action)}`);
   }
 };
 

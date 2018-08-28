@@ -13,13 +13,25 @@ const onFinish = (...args) => {
 };
 
 class Component extends React.PureComponent {
+  constructor(props) {
+    super(props);
+    this.state = {initialValue: 10};
+  }
+
+  updateProp = () => {
+    this.setState({initialValue: parseInt(Math.random() * 1000, 10)});
+  }
+
   render() {
     const {props, component: WrappedComponent} = this.props;
-    
+
     return (
       <div style={{border: "1px solid black", padding: 5, margin: 5}}>
+        {WrappedComponent.propTypes && WrappedComponent.propTypes.initialValue &&
+            <button onClick={this.updateProp}>Update Prop</button>}
+
         {WrappedComponent.name}
-        <WrappedComponent {...props} />
+        <WrappedComponent initialValue={this.state.initialValue} {...props} />
       </div>
     );
   }
