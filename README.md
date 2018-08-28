@@ -52,7 +52,7 @@ The same component, using `React.Component`: [ImperativeCounter.js](examples/src
 
 Options:
 
-- `init: command | state => command`: Equivalent to using `this.state = ...` and ` componentDidMount` + `this.setState` in a React component.
+- `init: command | state => command`: This replaces `this.state =` in a React component constructor and async and props calling in `componentDidMount`.
 
 - `update(action, state, props): command`: Take an action and current `state`/`props` and return a command to perform.
 
@@ -62,15 +62,11 @@ Options:
 
 ### Commands
 
-A *command* returned by `init` or `update`may have any of those three keys:
-
-  - `state` (any): The new state of the component. Since it's quite typical that a reducer only changes the internal component state, a function `newState(state => ({state});` is exported.
-  - `asyncActions` (Array<Promise>): An array of promises that resolve into actions.
-  - `parentActions` (Array<Object>): An array of parent actions to notify the parent component through props.
+A *command* returned by `init` or `update` may have any of those three keys: `state`, `asyncActions` and `parentActions`.
 
 #### Update state (`state`)
 
-Return the new state (full state, not partial state like you do in `this.setState`).
+Return the new state of the component. This should be the new full state, not partial state like `this.setState` takes. Since it's quite typical that a reducer only changes the internal component state, a function `newState(state => ({state});` is exported.
 
 #### Side-effects (`asyncActions`)
 
@@ -79,7 +75,7 @@ When creating an `OmReact` component, you don't have access to `setState`. To wr
 ```js
 import React from 'react';
 import {Button} from '../helpers';
-import {component, command} from 'omreact';
+import {component, command, newState} from 'omreact';
 
 const getRandomNumber = (min, max) => {
   return fetch("https://qrng.anu.edu.au/API/jsonI.php?length=1&type=uint16")
@@ -92,12 +88,12 @@ const actions = {
   fetchRandom: {type: "fetchRandom"},
 };
 
-const init = command({state: {value: 0}});
+const init = newState({value: 0});
 
 const update = (action, state, props) => {
   switch (action.type) {
     case "add":
-      return command({state: {value: state.value + action.value}});
+      return newState({value: state.value + action.value});
     case "fetchRandom":
       return command({asyncActions: [getRandomNumber(1, 10).then(actions.add)]});
     default:
@@ -156,10 +152,6 @@ export default component("CounterParentNotifications", {init, render, update});
 
 ### Component Lifecycle
 
-`OmReact` exposes some of [React lifecycle methods](https://reactjs.org/docs/react-component.html). Use the optional argument `lifecycles` to `omreact.component` and pass the action to execute. Note that the action must a function if the lifecyle passes arguments. Supported methods:
-
-* [getDerivedStateFromProps(nextProps, prevState)](https://reactjs.org/docs/react-component.html#static-getderivedstatefromprops)
-
 Note that [componentDidMount](https://reactjs.org/docs/react-component.html#componentdidmount) is not needed, simply pass an initial command in `init`.
 
 ### Actions
@@ -201,7 +193,7 @@ const actions = {
 
 #### Actions are agnostic
 
-An action can be any any object or function, if it has constructor/event arguments. Create your own abstractions using actions as strings, arrays, objects, or even get fancy with [proxy objects](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy), whatever works for you.
+An action can be any any object or function (if it has constructor/event arguments). Create your own abstractions using actions as strings, arrays, objects, [proxies](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy), whatever works for you.
 
 Check the [examples](examples/src) to see some alternative ways:
 
@@ -210,6 +202,23 @@ Check the [examples](examples/src) to see some alternative ways:
 - Using pre-defined [ADT constructors](https://github.com/tokland/omreact/blob/master/examples/src/counter/CounterSimpleAdt.js).
 
 - Using on-the-fly [Proxy constructors](https://github.com/tokland/omreact/blob/master/examples/src/counter/CounterActionsWithProxy.js).
+
+#### Actions are composable
+
+```
+import {component, newState, composeActions, memoize} from 'omreact';
+
+// ...
+
+const update = (updateAction, state, props) => updateAction.match({
+  add: value =>
+    newState({value: state.value + value}),
+  addOnePlusTwo: () =>
+    composeActions([actions.add(1), actions.add(2)], update, state, props),
+});
+
+// ...
+```
 
 ## Examples page
 

@@ -26,10 +26,9 @@ const action = memoize((type, ...args) => {
   };
 });
 
-
 const init = command({state: {value: 0}});
 
-const update = (updateAction, state, props) => updateAction.match({
+const update = (_action, state, props) => _action.match({
   decrement: () =>
     update(action("add", -1), state, props),
   add: value =>

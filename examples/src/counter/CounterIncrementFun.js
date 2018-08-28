@@ -27,4 +27,4 @@ const render = (state, props) => (
   </div>
 );
 
-export default component("CounterSimple", {init, render, update});
+export default component("CounterSimple", {init, render, update, _propTypes: {x: "string"}});

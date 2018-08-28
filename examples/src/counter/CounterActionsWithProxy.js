@@ -26,7 +26,7 @@ const actions = new Proxy({}, {
 
 const init = newState({value: 0});
 
-const update = (updateAction, state, props) => updateAction.match({
+const update = (action, state, props) => action.match({
   decrement: () => newState({value: state.value - 1}),
   add: value => newState({value: state.value + value}),
   addValueAndMouseButton: (value, ev) => newState({value: state.value + value + ev.button}),

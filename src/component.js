@@ -3,9 +3,19 @@ import memoize from 'memoize-weak';
 import _ from 'lodash';
 import {shallowEqual} from 'shouldcomponentupdate-children';
 
-function component(name, {init, render, update, actions, lifecycles = {}}) {
+function component(name, {
+      init,
+      render,
+      update,
+      actions,
+      lifecycles = {},
+      propTypes = {},
+      defaultProps = {}
+    }) {
   return class OmReactComponent extends React.Component {
     static name = name || "OmReactComponent";
+    static propTypes = propTypes;
+    static defaultProps = defaultProps;
 
     constructor(props) {
       super(props);
@@ -22,12 +32,6 @@ function component(name, {init, render, update, actions, lifecycles = {}}) {
 
     componentDidMount() {
       this._runUpdateAction(_.omit(this.initValue, ["state"]));
-    }
-
-    static getDerivedStateFromProps(nextProps, prevState) {
-      if (lifecycles.getDerivedStateFromProps) {
-        this._dispatch(lifecycles.getDerivedStateFromProps(nextProps, prevState));
-      }
     }
 
     _dispatch(action) {
@@ -48,11 +52,13 @@ function component(name, {init, render, update, actions, lifecycles = {}}) {
       }
 
       if (asyncActions) {
-        _(asyncActions).castArray().each(asyncAction => asyncAction.then(this._dispatch));
+        _(asyncActions).castArray()
+          .each(asyncAction => asyncAction.then(this._dispatch));
       }
 
       if (parentActions) {
-        _(parentActions).castArray().each(parentAction => parentAction.prop(...parentAction.args));
+        _(parentActions).castArray()
+          .each(parentAction => parentAction.prop(...parentAction.args));
       }
     }
 
