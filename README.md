@@ -1,8 +1,8 @@
 > Purely functional React components with local state
 
-React is mostly a functional framework, but it still promotes imperative code since the component updater (`this.setState`) works by performing side-effects. `OmReact` is a thin abstraction layer over React.js to write purely functional React components that hold local state.
+React is mostly a functional framework, but it still promotes imperative code since the component updater (`this.setState`) works by performing side-effects. `OmReact` is a thin abstraction layer over React to write purely functional components that hold local state.
 
-`OmReact` applies the [Elm architecture](https://guide.elm-lang.org/architecture/) to React components. Define a single `update` function that takes an action and returns the new component status (state + async actions).
+`OmReact` applies the [Elm architecture](https://guide.elm-lang.org/architecture/) to React components by defining a **single update** function that takes **actions** and returns **commands** (state + async actions).
 
 ## Install
 
@@ -66,7 +66,7 @@ A *command* returned by `init` or `update` may have any of those three keys: `st
 
 #### Update state (`state`)
 
-Return the new state of the component. This should be the new full state, not partial state like `this.setState` takes. Since it's quite typical that a reducer only changes the internal component state, a function `newState(state => ({state});` is exported.
+Return the new state of the component. This should be the new full state, not partial state like `this.setState` takes. Since it's quite typical for a reducer to only change the internal component state, a function `newState(newStateValue): command` is exported.
 
 #### Side-effects (`asyncActions`)
 
@@ -203,7 +203,7 @@ Check the [examples](examples/src) to see some alternative ways:
 
 - Using pre-defined [ADT constructors](https://github.com/tokland/omreact/blob/master/examples/src/counter/CounterSimpleAdt.js).
 
-- Using on-the-fly [Proxy constructors](https://github.com/tokland/omreact/blob/master/examples/src/counter/CounterActionsWithProxy.js).
+- Using on-the-fly [proxy constructors](https://github.com/tokland/omreact/blob/master/examples/src/counter/CounterActionsWithProxy.js).
 
 #### Actions are composable
 
@@ -212,7 +212,7 @@ import {component, newState, composeActions, memoize} from 'omreact';
 
 // ...
 
-const update = (updateAction, state, props) => updateAction.match({
+const update = (action, state, props) => action.match({
   add: value =>
     newState({value: state.value + value}),
   addOnePlusTwo: () =>
