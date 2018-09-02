@@ -1,6 +1,6 @@
 > Purely functional React components with local state
 
-React is mostly a functional framework, but it still promotes imperative code since the component updater (`this.setState`) works by performing side-effects. `OmReact` is a thin abstraction layer over React to write purely functional components that hold local state.
+React.js is mostly a functional framework, but it still promotes imperative code since the component updater (`this.setState`) works by performing side-effects. `OmReact` is a thin abstraction layer over React to write purely functional components that hold local state.
 
 `OmReact` applies the [Elm architecture](https://guide.elm-lang.org/architecture/) to React components by defining a **single update** function that takes **actions** and returns **commands** (state + async actions).
 
@@ -152,15 +152,32 @@ export default component("CounterParentNotifications", {init, render, update});
 
 ### Component Lifecycle
 
-Implemented lifecycle values:
+`OmReact` implements those React lifecycles:
 
-* `propsChanged: (prevProps) => action`. Called any time props change.
+* `newProps: (prevProps) => action`. Called any time props change. Example:
+
+```
+const actions = {
+  newProps: prevProps => ({type: "newProps", prevProps}),
+}
+
+const update = (action, state, props) => (
+  switch (action.type) {
+    case "newProps":
+      return command({state: {value: action.prevProps.value}});
+    // other actions
+  }
+);
+
+// render
+
+components({render, update, init, lifecycles: {newProps: actions.newProps});
 
 ### Actions
 
 #### Typical action signatures
 
-An action can have no arguments, *constructor arguments*, *event arguments*, or both. A typical actions object may look like this:
+An action can have no arguments, *constructor arguments* (which should be memoized), *event arguments* (which should not be memoized), or both. A typical `actions` object may look like this:
 
 ```js
 import {memoize} from 'omreact';
@@ -169,7 +186,7 @@ const actions = {
   increment: {type: "increment"},
   add: memoize(value => ({type: "add", value})),
   addMouseButton: ev => ({type: "addMouseButton", ev}),
-  addValueAndMouseButton: memoize(value => ev => ({type: "add", value, addValueAndMouseButton})),
+  addValueAndMouseButton: memoize(value => ev => ({type: "add", value, ev})),
 }
 ```
 

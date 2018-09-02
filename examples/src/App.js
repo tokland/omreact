@@ -18,8 +18,9 @@ class Component extends React.PureComponent {
     this.state = {initialValue: 10};
   }
 
-  updateProp = () => {
-    this.setState({initialValue: parseInt(Math.random() * 1000, 10)});
+  updateProps = () => {
+    const newValue = parseInt(Math.random() * 1000, 10);
+    this.setState({initialValue: newValue});
   }
 
   render() {
@@ -28,7 +29,7 @@ class Component extends React.PureComponent {
     return (
       <div style={{border: "1px solid black", padding: 5, margin: 5}}>
         {WrappedComponent.propTypes && WrappedComponent.propTypes.initialValue &&
-            <button onClick={this.updateProp}>Update Prop</button>}
+            <button onClick={this.updateProps}>Update props</button>}
 
         {WrappedComponent.name}
         <WrappedComponent initialValue={this.state.initialValue} {...props} />

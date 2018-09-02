@@ -35,11 +35,11 @@ function component(name, {
     }
 
     componentDidUpdate(prevProps) {
-      if (lifecycles.propsChanged) {
-        const propsChanged = !shallowEqualWithoutReactElements(prevProps, this.props);
-        //console.log("props", propsChanged, prevProps, "->", this.props);
-        if (propsChanged) {
-          this._dispatch(lifecycles.propsChanged(prevProps));
+      if (lifecycles.newProps) {
+        const propsHaveChanged = !shallowEqualWithoutReactElements(prevProps, this.props);
+
+        if (propsHaveChanged) {
+          this._dispatch(lifecycles.newProps(prevProps));
         }
       }
     }
