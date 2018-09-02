@@ -37,4 +37,4 @@ function composeActions(actions, update, state, ...args) {
   }, command({state: state, asyncActions: [], parentActions: []}));
 }
 
-export { command, newState, action, composeActions, sideEffect, eventPreventDefault, callProp };
+export { command, newState, composeActions, sideEffect, eventPreventDefault, callProp };
