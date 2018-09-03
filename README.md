@@ -1,8 +1,8 @@
 > Purely functional React components with local state
 
-React.js is mostly a functional framework, but it still promotes imperative code since the component updater (`this.setState`) works by performing side-effects. `OmReact` is a thin abstraction layer over React to write purely functional components that hold local state.
+React.js is mostly a functional framework, but it still promotes imperative code since the component state updater (`this.setState`) works by performing side-effects. `OmReact` is a thin abstraction layer over React so you can write purely functional components with local state.
 
-`OmReact` applies the [Elm architecture](https://guide.elm-lang.org/architecture/) to React components by defining a **single update** function that takes **actions** and returns **commands** (state + async actions).
+Similar to [Elm](https://guide.elm-lang.org/architecture/), you define a **single update** function that takes **actions** and returns **commands** (new state, async actions and parent actions).
 
 ## Install
 
@@ -48,29 +48,42 @@ The same component, using `React.Component`: [ImperativeCounter.js](examples/src
 
 ![Diagram](https://github.com/tokland/omreact/blob/master/OmReact.png)
 
-> component(name, {init, update, render, [lifecycles]})
+```
+component: (
+  name: string,
+  options: {
+    init: command | props => command,
+    update: (action, state, props) => command,
+    render: (state, props => React.element,
+    lifecycles?: Record<string, action>,
+    propTypes: object,
+    defaultProps: object,
+  }) => React.Component
+```
 
 Options:
 
-- `init: command | state => command`: This replaces `this.state =` in a React component constructor and async and props calling in `componentDidMount`.
+- `init`: This replaces `this.state =` in a React component constructor and async and props calling in `componentDidMount`.
 
-- `update(action, state, props): command`: Take an action and current `state`/`props` and return a command to perform.
+- `update`: Take an action and current `state`/`props` and return a command to perform.
 
-- `render(state, props): React.element` with `$eventProp={action | args => action}`: Like a React `render` function except that event props are $-prefixed. An action can be either a plain value or a pure function. `$` is a valid JS character for variable names, this way we don't need to use a custom JSX babel transform. `@onClick={...}` would be probably nicer, though.
+- `render` with `$eventProp={action | args => action}`: Like a React `render` function except that event props must be $-prefixed. An action can be either a plain value or a pure function. `$` is being used for convenience, it's a valid character for a variable name so there is no need to use a custom JSX babel transform. `@onClick={...}` would be probably nicer, though.
 
-- `lifecycles: {[key: lifeCycleName]: action}`: More on the lifecyle section.
+- `lifecycles`: More on the lifecyle section.
+
+- `propTypes`/`defaultProps`. Standard React keys, will be passed down to the component.
 
 ### Commands
 
-A *command* returned by `init` or `update` may have any of those three keys: `state`, `asyncActions` and `parentActions`.
+A *command* returned by `init` or `update` is an object containing any of those three keys: `state`, `asyncActions` and `parentActions`.
 
 #### Update state (`state`)
 
-Return the new state of the component. This should be the new full state, not partial state like `this.setState` takes. Since it's quite typical for a reducer to only change the internal component state, a function `newState(newStateValue): command` is exported.
+Return the new state of the component. This should be the new full state, not partial state like `this.setState` takes. Since it's typical for a reducer to only change the state, a function `newState: newStateValue => command` is provided.
 
 #### Side-effects (`asyncActions`)
 
-When creating an `OmReact` component, you don't have access to `setState`. To write asynchronous code (timers, requests), you return instead a command containing asynchronous actions (`asyncActions`), an array of promises that resolve into some other action. An example:
+In `OmReact` components, you don't have access to `setState`, to write asynchronous code (timers, requests), you return instead a command containing asynchronous actions (`asyncActions`), an array of promises that resolve into some other action. An example:
 
 ```js
 import React from 'react';
@@ -113,7 +126,7 @@ export default component("CounterWithSideEffects", {init, render, update});
 
 #### Notify the parent component (`parentActions`)
 
-React components report to their parents using props. While there is nothing preventing you from directly calling a prop in an `OmReact` component, you can keep it purely functional returning a command with `parentActions` containing an array of `callProp` entries. Example:
+React components report to their parents through props. While there is nothing preventing you from directly calling a prop in an `OmReact` component like you do in React, you should keep it purely functional by returning a command with `parentActions`, which contains an array of `callProp` entries. Example:
 
 ```js
 import React from 'react';
@@ -154,7 +167,9 @@ export default component("CounterParentNotifications", {init, render, update});
 
 `OmReact` implements those React lifecycles:
 
-* `newProps: (prevProps) => action`. Called any time props change. Example:
+* `newProps: (prevProps) => action`. Called any time props change.
+
+Example:
 
 ```
 const actions = {
@@ -169,15 +184,11 @@ const update = (action, state, props) => (
   }
 );
 
-// render
-
-components({render, update, init, lifecycles: {newProps: actions.newProps});
-
 ### Actions
 
 #### Typical action signatures
 
-An action can have no arguments, *constructor arguments* (which should be memoized), *event arguments* (which should not be memoized), or both. A typical `actions` object may look like this:
+A typical way of defining actions is to have *constructor arguments* (optional, should be memoized), *event arguments* (should not be memoized), or both. A typical `actions` object may look like this:
 
 ```js
 import {memoize} from 'omreact';
@@ -190,7 +201,7 @@ const actions = {
 }
 ```
 
-Use like this on event props:
+Use like this on the event props of rendered elements:
 
 - `actions.increment`: An _object_, use it when you need no arguments. Example `$onClick={actions.increment}`. The dispatcher will see that it's not a function and won't call it with the event arguments.
 - `actions.add`: A _1-time callable function_ that takes only action constructor arguments. Example: `$onClick={actions.add(1)}`. This function should be memoized.
@@ -199,7 +210,7 @@ Use like this on event props:
 
 #### Memoize actions
 
-It's a well known caveat that you should never pass newly created values as props, otherwise a React component will think those props changed and will issue an unnecessary re-render. This applies to arrays, objects or arrow functions (no problem with strings, `===` works fine on them).  Extract prop values to `const` values to avoid this problem. Also, use memoization (the library already provides a helper for that: `memoize`) in action constructors. Example:
+It's well known  that you should never pass newly created values as props, otherwise a React component will think those props changed and will issue an unnecessary re-render. This applies to arrays, objects or arrow functions (no problem with strings, `===` works fine on them).  Extract prop values to `const` values to avoid this problem. Also, use memoization (the library already provides a helper for that: `memoize`) in action constructors. Example:
 
 ```js
 import {component, memoize} from 'omreact';
