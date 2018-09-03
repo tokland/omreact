@@ -82,9 +82,6 @@
     ],
     "testPathIgnorePatterns": [
       "/node_modules/"
-    ],
-    "transformIgnorePatterns": [
-      "/node_modules/(?!d2-ui).+\\.js$"
     ]
   }
 }

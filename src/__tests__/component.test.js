@@ -1,5 +1,4 @@
 import React from 'react';
-//import Hello from './Hello';
 import {shallow} from 'enzyme';
 import {component} from '..'
 
