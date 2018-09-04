@@ -1,3 +1,5 @@
+import _ from 'lodash';
+
 function sideEffect(fn, ...args) {
   return new Promise(resolve => resolve(fn(...args))).then(() => null);
 };

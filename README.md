@@ -1,8 +1,8 @@
 > Purely functional React components with local state
 
-React.js is mostly a functional framework, but it still promotes imperative code since the component state updater (`this.setState`) works by performing side-effects. `OmReact` is a thin abstraction layer over React so you can write purely functional components with local state.
+`OmReact` is a thin abstraction layer over React so you can write purely functional components with local state. While React.js is mostly a functional framework, it still promotes imperative code since `this.setState`, the component state updater, works by performing side-effects.
 
-Similar to [Elm](https://guide.elm-lang.org/architecture/), you define a **single update** function that takes **actions** and returns **commands** (new state, async actions and parent actions).
+The idea is similar to the [Elm architecture](https://guide.elm-lang.org/architecture/) but applied to components: define a **single update** function that takes **actions** and returns **commands** (new state + async actions + parent actions). On render, instead of functions with side effects, event props (i.e. onClick) take pure values instead, either action constructors or plain values.
 
 ## Install
 
@@ -40,8 +40,6 @@ const render = (state, props) => (
 export default component("MyCounterSimple", {init, render, update});
 ```
 
-The same component, using `React.Component`: [ImperativeCounter.js](examples/src/counter/ImperativeCounter.js)
-
 ##  OnReact component
 
 ### Component overview
@@ -52,13 +50,19 @@ The same component, using `React.Component`: [ImperativeCounter.js](examples/src
 component: (
   name: string,
   options: {
-    init: command | props => command,
-    update: (action, state, props) => command,
-    render: (state, props => React.element,
+    init: Command | Props => Command,
+    update: (action, state, props) => Command,
+    render: (state, props => React.Element,
     lifecycles?: Record<string, action>,
-    propTypes: object,
-    defaultProps: object,
-  }) => React.Component
+    propTypes?: Object,
+    defaultProps?: Object,
+  }) => React.Component;
+
+type Command = {
+  state: State,
+  asyncActions: Array<Promise<Action>>,
+  parentActions: Array<ParentAction>,
+}
 ```
 
 Options:
