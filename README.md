@@ -1,8 +1,8 @@
-> Purely functional React components with local state
+# Purely functional React components with local state
 
-`OmReact` is a thin abstraction layer over React so you can write purely functional components with local state. While React.js is mostly a functional framework, it still promotes imperative code since `this.setState`, the component state updater, works by performing side-effects.
+`OmReact` is a thin layer over React that allows writing purely functional components with local state. React is mostly a functional framework, but it still promotes imperative code since `this.setState` works by performing side-effects.
 
-The idea is similar to the [Elm architecture](https://guide.elm-lang.org/architecture/) but applied to components: define a **single update** function that takes **actions** and returns **commands** (new state + async actions + parent actions). On render, instead of functions with side effects, event props (i.e. onClick) take pure values instead, either action constructors or plain values.
+`OmReact` is similar to the [Elm architecture](https://guide.elm-lang.org/architecture/), but applied to components: define a **single update** function that takes **actions** and returns **commands** (new state + async/parent actions). On render, event props take pure values, either action constructors or plain values (example: `$onClick="setValueOne"`), instead of functions with side effects.
 
 ## Install
 
@@ -51,17 +51,17 @@ component: (
   name: string,
   options: {
     init: Command | Props => Command,
-    update: (action, state, props) => Command,
-    render: (state, props => React.Element,
-    lifecycles?: Record<string, action>,
+    update: (Action, State, Props) => Command,
+    render: (State, Props => React.Element,
+    lifecycles?: Record<string, Action>,
     propTypes?: Object,
     defaultProps?: Object,
   }) => React.Component;
 
 type Command = {
-  state: State,
-  asyncActions: Array<Promise<Action>>,
-  parentActions: Array<ParentAction>,
+  state?: State,
+  asyncActions?: Array<Promise<Action>>,
+  parentActions?: Array<ParentAction>,
 }
 ```
 

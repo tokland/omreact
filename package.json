@@ -60,6 +60,7 @@
     "eslint-plugin-node": "^7.0.1",
     "eslint-plugin-prettier": "^2.6.0",
     "jest": "^23.5.0",
+    "jest-chain": "^1.0.3",
     "lint-staged": "^7.0.4",
     "prettier": "^1.11.1",
     "react": "^16.4.2",

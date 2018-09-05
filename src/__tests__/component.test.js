@@ -1,6 +1,6 @@
 import React from 'react';
 import {shallow, mount} from 'enzyme';
-import {component, command, newState, memoize} from '..'
+import {component, command, newState, memoize, callProp} from '..'
 
 function onNextTick(done, expectation) {
   return setImmediate(() => {
@@ -10,23 +10,25 @@ function onNextTick(done, expectation) {
 }
 
 function getCounter() {
-  const init = command({
-    state: {value: 0},
+  const init = props => command({
+    state: {value: props.initialValue},
   });
 
-  const action = (type, ...args) => ({match: (obj) => obj[type](...args)});
+  const buildAction = (type, ...args) => ({match: (obj) => obj[type](...args)});
 
   const actions = {
-    decrement: () => action("decrement"),
-    add: memoize(value => action("add", value)),
-    addButton: ev => action("add", ev.button),
-    addFiveFromPromise: () => action("addFiveFromPromise"),
+    decrement: () => buildAction("decrement"),
+    add: memoize(value => buildAction("add", value)),
+    addButton: ev => buildAction("add", ev.button),
+    addFiveFromPromise: () => buildAction("addFiveFromPromise"),
+    callOnFinish: () => buildAction("callOnFinish"),
   };
 
-  const update = (_action, state, props) => _action.match({
+  const update = (action, state, props) => action.match({
     decrement: () => newState({value: state.value - 1}),
     add: value => newState({value: state.value + value}),
-    addFiveFromPromise: value => command({asyncActions: [Promise.resolve(actions.add(5))]})
+    addFiveFromPromise: value => command({asyncActions: [Promise.resolve(actions.add(5))]}),
+    callOnFinish: () => command({parentActions: [callProp(props.onFinish, state.value)]}),
   });
 
   const render = (state, props) => (
@@ -35,6 +37,7 @@ function getCounter() {
       <button className="increment" $onClick={actions.add(+1)}>+1</button>
       <button className="addButton" $onClick={actions.addButton}>+BUTTON</button>
       <button className="addFiveFromPromise" $onClick={actions.addFiveFromPromise}>+5_FROM_PROMISE</button>
+      <button className="callOnFinish" $onClick={actions.callOnFinish}>CALL_ON_FINISH</button>
 
       <div className="value">{state.value}</div>
     </div>
@@ -42,7 +45,9 @@ function getCounter() {
 
   const Component = component("Counter", {init, render, update});
 
-  return mount(<Component />);
+  const onFinish = jest.fn();
+
+  return mount(<Component initialValue={0} onFinish={onFinish} />);
 }
 
 let counter;
@@ -93,6 +98,17 @@ describe("Counter component", () => {
     it("increments state value by 5", (done) => {
       counter.find('.addFiveFromPromise').simulate("click");
       onNextTick(done, () => expect(counter.find('.value').text()).toEqual("5"));
+    });
+  });
+
+  describe("when button <callOnFinish> clicked", () => {
+    beforeEach(() => counter = getCounter());
+
+    it("calls parent prop onFinish with current state value", () => {
+      counter.find('.callOnFinish').simulate("click");
+      expect(counter.props().onFinish)
+        .toBeCalledTimes(1)
+        .toBeCalledWith(0);
     });
   });
 });
