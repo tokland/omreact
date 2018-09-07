@@ -1,16 +1,16 @@
-import React from 'react';
-import memoize from 'memoize-weak';
-import _ from 'lodash';
-import {shallowEqual, shallowEqualWithoutReactElements} from 'shouldcomponentupdate-children';
+import React from "react";
+import memoize from "memoize-weak";
+import _ from "lodash";
+import {shallowEqual, shallowEqualWithoutReactElements} from "shouldcomponentupdate-children";
 
 function component(name, {
-      init,
-      render,
-      update,
-      lifecycles = {},
-      propTypes = {},
-      defaultProps = {},
-    }) {
+  init,
+  render,
+  update,
+  lifecycles = {},
+  propTypes = {},
+  defaultProps = {},
+}) {
   return class OmReactComponent extends React.Component {
     static name = name || "OmReactComponent";
     static propTypes = propTypes;
@@ -77,14 +77,14 @@ function component(name, {
       }
 
       switch (prop.match(/^\$*/)[0].length) {
-        case 1: // $onEvent -> pass arguments to action
-          return (...args) => this._dispatch(_(value).isFunction() ? value(...args) : value);
-        case 2: // $$onEvent -> don't pass arguments to action
-          // This is not really needed as we can check before dispatching or the user can simply
-          // ignore the event arguments. Also, we need some escaping mechanism, so $$prop -> $prop.
-          return () => this._dispatch(_(value).isFunction() ? value() : value);
-        default:
-          throw new Error("Invalid event prop: " + prop);
+      case 1: // $onEvent -> pass arguments to action
+        return (...args) => this._dispatch(_(value).isFunction() ? value(...args) : value);
+      case 2: // $$onEvent -> don't pass arguments to action
+        // This is not really needed as we can check before dispatching or the user can simply
+        // ignore the event arguments. Also, we need some escaping mechanism, so $$prop -> $prop.
+        return () => this._dispatch(_(value).isFunction() ? value() : value);
+      default:
+        throw new Error("Invalid event prop: " + prop);
       }
     }
 
@@ -92,16 +92,16 @@ function component(name, {
       const elementWithVirtualEvents = render(this.state.value, this.props);
       return processEventProps(elementWithVirtualEvents, this._getDispatcher);
     }
-  }
-};
+  };
+}
 
 function processEventProps(element, getDispatcher) {
   if (!element || !element.props) {
     return element;
   } else {
     const convertProp = (value, prop) => {
-      return prop.startsWith('$')
-        ? [prop.replace(/^\$*/, ''), getDispatcher(element.type.name || element.type, prop, value)]
+      return prop.startsWith("$")
+        ? [prop.replace(/^\$*/, ""), getDispatcher(element.type.name || element.type, prop, value)]
         : [prop, value];
     };
     const allProps = _(element.props).map(convertProp).fromPairs().value();

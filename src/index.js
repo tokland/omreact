@@ -1,7 +1,7 @@
-import memoize from 'memoize-weak';
+import memoize from "memoize-weak";
 
 export {memoize};
-export {component} from './component';
+export {component} from "./component";
 export {
   command,
   sideEffect,
@@ -11,4 +11,4 @@ export {
   composeActions,
   actionMatch,
   action,
-} from './commands';
+} from "./commands";

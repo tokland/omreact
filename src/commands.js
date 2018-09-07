@@ -1,8 +1,8 @@
-import _ from 'lodash';
+import _ from "lodash";
 
 function sideEffect(fn, ...args) {
   return new Promise(resolve => resolve(fn(...args))).then(() => null);
-};
+}
 
 function eventPreventDefault(ev) {
   return sideEffect(ev.preventDefault.bind(ev));
