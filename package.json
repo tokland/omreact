@@ -61,6 +61,7 @@
     "eslint-plugin-prettier": "^2.6.0",
     "jest": "^23.5.0",
     "jest-chain": "^1.0.3",
+    "jest-prop-type-error": "^1.1.0",
     "lint-staged": "^7.0.4",
     "prettier": "^1.11.1",
     "react": "^16.4.2",
@@ -80,6 +81,9 @@
     "setupTestFrameworkScriptFile": "<rootDir>/config/setupTests.js",
     "collectCoverageFrom": [
       "src/**/*.js"
+    ],
+    "setupFiles": [
+      "jest-prop-type-error"
     ],
     "testPathIgnorePatterns": [
       "/node_modules/"

@@ -1,6 +1,7 @@
 import React from 'react';
 import {shallow, mount} from 'enzyme';
 import {component, command, newState, memoize, callProp} from '..'
+import PropTypes from 'prop-types';
 
 function onNextTick(done, expectation) {
   return setImmediate(() => {
@@ -9,7 +10,7 @@ function onNextTick(done, expectation) {
   });
 }
 
-function getCounter() {
+function getCounter({setProps, mergeProps} = {}) {
   const init = props => command({
     state: {value: props.initialValue},
   });
@@ -35,7 +36,7 @@ function getCounter() {
     callOnFinish: () =>
       command({parentActions: [callProp(props.onFinish, state.value)]}),
     newProps: (prevProps) =>
-      command({parentActions: [callProp(props.onFinish, prevProps.initialValue, props.initialValue)]}),
+      command({parentActions: [callProp(props.onPropChange, prevProps.initialValue, props.initialValue)]}),
   });
 
   const render = (state, props) => (
@@ -55,11 +56,20 @@ function getCounter() {
     render,
     update,
     lifecycles: {newProps: actions.newProps},
+    propTypes: {
+      onFinish: PropTypes.func.isRequired,
+      onPropChange: PropTypes.func.isRequired,
+    }
   });
 
-  const onFinish = jest.fn();
+  const finalProps = setProps || {
+    initialValue: 0,
+    onFinish: jest.fn(),
+    onPropChange: jest.fn(),
+    ...mergeProps,
+  };
 
-  return mount(<Component initialValue={0} onFinish={onFinish} />);
+  return mount(<Component {...finalProps} />);
 }
 
 let counter;
@@ -76,6 +86,13 @@ describe("Counter component", () => {
 
     it('renders value', () => {
       expect(counter.find('.value').text()).toEqual("0");
+    });
+  });
+
+  describe("with missing prop", () => {
+    it('throws error', () => {
+      expect(() => getCounter({mergeProps: {onFinish: 1}}))
+        .toThrow("Warning: Failed prop type: Invalid prop `onFinish` of type `number` supplied to `Counter`, expected `function`.");
     });
   });
 
@@ -143,7 +160,7 @@ describe("Counter component", () => {
     });
 
     it("calls prop onFinish with previous and new prop values", () => {
-      expect(counter.props().onFinish)
+      expect(counter.props().onPropChange)
         .toBeCalledTimes(1)
         .toBeCalledWith(0, 10);
     });
