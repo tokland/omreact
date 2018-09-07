@@ -22,13 +22,20 @@ function getCounter() {
     addButton: ev => buildAction("add", ev.button),
     addFiveFromPromise: () => buildAction("addFiveFromPromise"),
     callOnFinish: () => buildAction("callOnFinish"),
+    newProps: (prevProps) => buildAction("newProps", prevProps),
   };
 
   const update = (action, state, props) => action.match({
-    decrement: () => newState({value: state.value - 1}),
-    add: value => newState({value: state.value + value}),
-    addFiveFromPromise: value => command({asyncActions: [Promise.resolve(actions.add(5))]}),
-    callOnFinish: () => command({parentActions: [callProp(props.onFinish, state.value)]}),
+    decrement: () =>
+      newState({value: state.value - 1}),
+    add: value =>
+      newState({value: state.value + value}),
+    addFiveFromPromise: value =>
+      command({asyncActions: [Promise.resolve(actions.add(5))]}),
+    callOnFinish: () =>
+      command({parentActions: [callProp(props.onFinish, state.value)]}),
+    newProps: (prevProps) =>
+      command({parentActions: [callProp(props.onFinish, prevProps.initialValue, props.initialValue)]}),
   });
 
   const render = (state, props) => (
@@ -43,7 +50,12 @@ function getCounter() {
     </div>
   );
 
-  const Component = component("Counter", {init, render, update});
+  const Component = component("Counter", {
+    init,
+    render,
+    update,
+    lifecycles: {newProps: actions.newProps},
+  });
 
   const onFinish = jest.fn();
 
@@ -54,7 +66,9 @@ let counter;
 
 describe("Counter component", () => {
   describe("on initial state", () => {
-    beforeEach(() => counter = getCounter());
+    beforeEach(() => {
+      counter = getCounter();
+    });
 
     it('renders component with correct name', () => {
       expect(counter.name()).toEqual("Counter");
@@ -66,49 +80,72 @@ describe("Counter component", () => {
   });
 
   describe("when button <decrement> clicked", () => {
-    beforeEach(() => counter = getCounter());
+    beforeEach(() => {
+      counter = getCounter();
+      counter.find('.decrement').simulate("click");
+    });
 
     it("decrements state value by 1", () => {
-      counter.find('.decrement').simulate("click");
       expect(counter.find('.value').text()).toEqual("-1");
     });
   });
 
   describe("when button <increment> clicked", () => {
-    beforeEach(() => counter = getCounter());
+    beforeEach(() => {
+      counter = getCounter();
+      counter.find('.increment').simulate("click");
+    });
 
     it("increments state value by 1", () => {
-      counter.find('.increment').simulate("click");
       expect(counter.find('.value').text()).toEqual("1");
     });
   });
 
   describe("when button <addButton> clicked", () => {
-    beforeEach(() => counter = getCounter());
+    beforeEach(() => {
+      counter = getCounter();
+      counter.find('.addButton').simulate("click", {button: 3});
+    });
 
     it("increments state value by button value", () => {
-      counter.find('.addButton').simulate("click", {button: 3});
       expect(counter.find('.value').text()).toEqual("3");
     });
   });
 
   describe("when button <addFiveFromPromise> clicked", () => {
-    beforeEach(() => counter = getCounter());
+    beforeEach(() => {
+      counter = getCounter();
+      counter.find('.addFiveFromPromise').simulate("click");
+    });
 
     it("increments state value by 5", (done) => {
-      counter.find('.addFiveFromPromise').simulate("click");
       onNextTick(done, () => expect(counter.find('.value').text()).toEqual("5"));
     });
   });
 
   describe("when button <callOnFinish> clicked", () => {
-    beforeEach(() => counter = getCounter());
+    beforeEach(() => {
+      counter = getCounter();
+      counter.find('.callOnFinish').simulate("click");
+    });
 
     it("calls parent prop onFinish with current state value", () => {
-      counter.find('.callOnFinish').simulate("click");
       expect(counter.props().onFinish)
         .toBeCalledTimes(1)
         .toBeCalledWith(0);
+    });
+  });
+
+  describe("when initialProp prop is changed", () => {
+    beforeEach(() => {
+      counter = getCounter();
+      counter.setProps({initialValue: 10});
+    });
+
+    it("calls prop onFinish with previous and new prop values", () => {
+      expect(counter.props().onFinish)
+        .toBeCalledTimes(1)
+        .toBeCalledWith(0, 10);
     });
   });
 });

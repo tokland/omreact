@@ -7,7 +7,6 @@ function component(name, {
       init,
       render,
       update,
-      actions,
       lifecycles = {},
       propTypes = {},
       defaultProps = {},
