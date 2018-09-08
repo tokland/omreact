@@ -20,9 +20,8 @@ function component(name, {
       super(props);
       this.initValue = _(init).isFunction() ? init(props) : init;
       this.state = {value: this.initValue.state};
-      this._getDispatcher = this._getDispatcher.bind(this);
       this._dispatch = this._dispatch.bind(this);
-      this._getDispatcher = memoize(this._getDispatcher);
+      this._getDispatcher = memoize(this._getDispatcher.bind(this));
     }
 
     _shouldComponentUpdate(nextProps, nextState) {
@@ -81,7 +80,7 @@ function component(name, {
         return (...args) => this._dispatch(_(value).isFunction() ? value(...args) : value);
       case 2: // $$onEvent -> don't pass arguments to action
         // This is not really needed as we can check before dispatching or the user can simply
-        // ignore the event arguments. Also, we need some escaping mechanism, so $$prop -> $prop.
+        // ignore the event arguments. Also, we need some escaping mechanism: $$prop -> $prop.
         return () => this._dispatch(_(value).isFunction() ? value() : value);
       default:
         throw new Error("Invalid event prop: " + prop);

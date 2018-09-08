@@ -59,11 +59,13 @@ function getCounter({setProps, mergeProps} = {}) {
     propTypes: {
       onFinish: PropTypes.func.isRequired,
       onPropChange: PropTypes.func.isRequired,
+    },
+    defaultProps: {
+      initialValue: 0
     }
   });
 
   const finalProps = setProps || {
-    initialValue: 0,
     onFinish: jest.fn(),
     onPropChange: jest.fn(),
     ...mergeProps,
