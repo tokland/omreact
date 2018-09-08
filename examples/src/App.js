@@ -1,5 +1,6 @@
-import React from 'react';
-import _ from 'lodash';
+import React from "react";
+import PropTypes from "prop-types";
+import _ from "lodash";
 
 const requireCounters = require.context("./counter/", true, /^(.*\.js$)/);
 const counters = _(requireCounters.keys())
@@ -13,6 +14,11 @@ const onFinish = (...args) => {
 };
 
 class Component extends React.PureComponent {
+  propTypes = {
+    props: PropTypes.object,
+    component: PropTypes.object,
+  }
+
   constructor(props) {
     super(props);
     this.state = {initialValue: 10};
@@ -48,9 +54,11 @@ const App = () => (
   </div>
 );
 
-if (process.env.NODE_ENV !== 'production') {
-  const {whyDidYouUpdate} = require('why-did-you-update');
+/*
+if (process.env.NODE_ENV !== "production") {
+  const {whyDidYouUpdate} = require("why-did-you-update");
   whyDidYouUpdate(React);
 }
+*/
 
 export default App;

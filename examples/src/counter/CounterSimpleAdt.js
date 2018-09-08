@@ -1,14 +1,14 @@
-import React from 'react';
-import _ from 'lodash';
+import React from "react";
+import _ from "lodash";
 
-import {Button} from '../helpers';
-import {component, newState, memoize} from 'omreact';
-import {eventPreventDefault} from 'omreact/commands';
+import {Button} from "../helpers";
+import {component, newState, memoize} from "omreact";
+import {eventPreventDefault} from "omreact/commands";
 
 function buildActions(actionsObj) {
   const getAction = (actionName, argNames, args) => ({
-      ..._(argNames).zip(args).fromPairs().value(),
-      _match: matchObject => matchObject[actionName](...args),
+    ..._(argNames).zip(args).fromPairs().value(),
+    _match: matchObject => matchObject[actionName](...args),
   });
 
   return _.mapValues(actionsObj, (argNames, actionName) => {
@@ -46,12 +46,12 @@ const update = (action, state, props) => action._match({
     ({asyncActions: [eventPreventDefault(ev)]}),
 });
 
-const render = (state, props) => (
+const render = (state, _props) => (
   <div>
     <Button $onClick={actions.decrement}>DEC</Button>
     <Button $onClick={actions.add(+1)}>+1</Button>
     <Button $onMouseUp={actions.addValuePlusMouseButton(1)}
-            $onContextMenu={actions.cancelEvent}>+BUTTON</Button>
+      $onContextMenu={actions.cancelEvent}>+BUTTON</Button>
     <div>{state.value}</div>
   </div>
 );

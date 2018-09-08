@@ -1,7 +1,7 @@
-import React from 'react';
-import {Button, getRandomNumber} from '../helpers';
-import {component, command, newState, composeActions, memoize} from 'omreact';
-import {eventPreventDefault, callProp} from 'omreact/commands';
+import React from "react";
+import {Button, getRandomNumber} from "../helpers";
+import {component, command, newState, composeActions, memoize} from "omreact";
+import {eventPreventDefault, callProp} from "omreact/commands";
 
 function actionMatch(reducers) {
   const reducer = reducers[this.type];
@@ -11,7 +11,7 @@ function actionMatch(reducers) {
   } else {
     throw new Error("Action type not defined in the update function: " + this.type);
   }
-};
+}
 
 const action = memoize((type, ...args) => {
   return {
@@ -45,14 +45,14 @@ const update = (_action, state, props) => _action.match({
     command({parentActions: [callProp(props.onFinish, state.value)]}),
 });
 
-const render = (state, props) => (
+const render = (state, _props) => (
   <div>
     <Button $onClick={action("decrement")}>DEC</Button>
     <Button $onClick={action("add", +1)}>+1</Button>
     <Button $onClick={action("addOnePlusTwo")}>+1+2</Button>
     <Button $onClick={action("fetchRandom")}>+ASYNC_RANDOM(1..10)</Button>
     <Button $onMouseUp={action("addValueAndMouseButton", +1).withArgs}
-            $onContextMenu={action("cancelEvent").withArgs}>+BUTTON</Button>
+      $onContextMenu={action("cancelEvent").withArgs}>+BUTTON</Button>
     <Button $onClick={action("notifyParent")}>Notify parent</Button>
     <div>{state.value}</div>
   </div>

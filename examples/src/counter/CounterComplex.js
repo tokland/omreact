@@ -1,6 +1,6 @@
-import React from 'react';
-import {Button, getRandomNumber} from '../helpers';
-import {component, command, memoize} from 'omreact';
+import React from "react";
+import {Button, getRandomNumber} from "../helpers";
+import {component, command, memoize} from "omreact";
 
 const init = command({
   state: {value: 0, message: ""},
@@ -15,32 +15,32 @@ const actions = {
   onUnmount: {type: "unmount"},
 };
 
-const update = (action, state, props) => {
+const update = (action, state, _props) => {
   switch (action.type) {
-    case "increment":
-      return command({state: {...state, value: state.value + 1}});
-    case "decrement":
-      return command({state: {...state, value: state.value - 1}});
-    case "fetchRandom":
-      return command({
-        state: {...state, message: "Fetch random number from QRNG..."},
-        asyncActions: [getRandomNumber(1, 10).then(actions.add).catch(actions.showError)],
-      });
-    case "add":
-      return command({
-        state: {...state, value: state.value + action.value, message: `Added ${action.value}`},
-      });
-    case "showError":
-      return command({state: {...state, message: `Error: ${action.error}`}});
-    case "unmount":
-      alert("You unmounted me!");
-      return command({});
-    default:
-      throw new Error(`[update] Unknown action: ${action}`);
+  case "increment":
+    return command({state: {...state, value: state.value + 1}});
+  case "decrement":
+    return command({state: {...state, value: state.value - 1}});
+  case "fetchRandom":
+    return command({
+      state: {...state, message: "Fetch random number from QRNG..."},
+      asyncActions: [getRandomNumber(1, 10).then(actions.add).catch(actions.showError)],
+    });
+  case "add":
+    return command({
+      state: {...state, value: state.value + action.value, message: `Added ${action.value}`},
+    });
+  case "showError":
+    return command({state: {...state, message: `Error: ${action.error}`}});
+  case "unmount":
+    alert("You unmounted me!");
+    return command({});
+  default:
+    throw new Error(`[update] Unknown action: ${action}`);
   }
 };
 
-const render = (state, props) => (
+const render = (state, _props) => (
   <div>
     <Button $onClick={actions.decrement}>-1</Button>
     <Button $onClick={actions.increment}>+1</Button>

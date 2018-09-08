@@ -1,10 +1,10 @@
-import React from 'react';
-import {Button} from '../helpers';
-import {component, newState, memoize} from 'omreact';
+import React from "react";
+import {Button} from "../helpers";
+import {component, newState, memoize} from "omreact";
 
 function actionMatch(reducers) {
   return reducers[this.type](...this.args);
-};
+}
 
 const actions = new Proxy({}, {
   get: memoize(function(obj, prop) {
@@ -26,13 +26,13 @@ const actions = new Proxy({}, {
 
 const init = newState({value: 0});
 
-const update = (action, state, props) => action.match({
+const update = (action, state, _props) => action.match({
   decrement: () => newState({value: state.value - 1}),
   add: value => newState({value: state.value + value}),
   addValueAndMouseButton: (value, ev) => newState({value: state.value + value + ev.button}),
 });
 
-const render = (state, props) => (
+const render = (state, _props) => (
   <div>
     <Button $onClick={actions.decrement()}>-1</Button>
     <Button $onClick={actions.add(+1)}>+1</Button>

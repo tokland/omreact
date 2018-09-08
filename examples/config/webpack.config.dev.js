@@ -121,7 +121,7 @@ module.exports = {
             loader: require.resolve('eslint-loader'),
           },
         ],
-        //include: [paths.appSrc, path.resolve(__dirname, "../../omreact")]
+        include: [paths.appSrc, path.resolve(__dirname, "../../omreact")]
       },
       {
         // "oneOf" will traverse all following loaders until one will

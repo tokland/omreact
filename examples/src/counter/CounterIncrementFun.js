@@ -1,25 +1,25 @@
-import React from 'react';
-import {component, command} from 'omreact';
+import React from "react";
+import {component, command} from "omreact";
 
 const actions = {
-  decrement: ev => ({type: "decrement"}),
-  increment: ev => ({type: "increment"}),
+  decrement: _ev => ({type: "decrement"}),
+  increment: _ev => ({type: "increment"}),
 };
 
-const init = props => command({state: {value: 0}});
+const init = command({state: {value: 0}});
 
-const update = (action, state, props) => {
+const update = (action, state, _props) => {
   switch (action.type) {
-    case "decrement":
-      return command({state: {value: state.value - 1}});
-    case "increment":
-      return command({state: {value: state.value + 1}});
-    default:
-      throw new Error(`[update] Action to implemented: ${JSON.stringify(action)}`);
+  case "decrement":
+    return command({state: {value: state.value - 1}});
+  case "increment":
+    return command({state: {value: state.value + 1}});
+  default:
+    throw new Error(`[update] Action to implemented: ${JSON.stringify(action)}`);
   }
 };
 
-const render = (state, props) => (
+const render = (state, _props) => (
   <div>
     <button $onClick={actions.decrement}>-1</button>
     <button $onClick={actions.increment}>+1</button>
