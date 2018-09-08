@@ -61,7 +61,7 @@ function getCounter({setProps, mergeProps} = {}) {
       onPropChange: PropTypes.func.isRequired,
     },
     defaultProps: {
-      initialValue: 0
+      initialValue: 0,
     }
   });
 

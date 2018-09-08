@@ -17,7 +17,8 @@
     "commands.js"
   ],
   "scripts": {
-    "_precommit": "lint-staged",
+    "precommit": "npm run lint && npm run test",
+    "test": "jest",
     "lint": "eslint 'src/**/*.js'",
     "code-quality": "npm run lint",
     "build": "babel src -d . --source-maps --ignore 'src/**/*.test.js'",
