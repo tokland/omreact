@@ -1,6 +1,6 @@
-# Purely functional React components with local state
+## Purely functional React components with local state
 
-`OmReact` is a thin layer over React that allows writing purely functional components with local state. React is mostly a functional framework, but it still promotes imperative code since `this.setState` works by performing side-effects.
+`OmReact` is a thin layer over React that allows writing purely functional components that hold local state. React is mostly a functional framework, but it still promotes imperative code through `this.setState`, which works by performing side-effects.
 
 `OmReact` is similar to the [Elm architecture](https://guide.elm-lang.org/architecture/), but applied to components: define a **single update** function that takes **actions** and returns **commands** (new state + async/parent actions). On render, event props take pure values, either action constructors or plain values (example: `$onClick="setValueOne"`), instead of functions with side effects.
 
@@ -46,7 +46,7 @@ export default component("MyCounterSimple", {init, render, update});
 
 ![Diagram](https://github.com/tokland/omreact/blob/master/OmReact.png)
 
-```
+```js
 component: (
   name: string,
   options: {
@@ -175,7 +175,7 @@ export default component("CounterParentNotifications", {init, render, update});
 
 Example:
 
-```
+```js
 const actions = {
   newProps: prevProps => ({type: "newProps", prevProps}),
 }
@@ -239,7 +239,7 @@ Check the [examples](examples/src) to see some alternative ways:
 
 #### Actions are composable
 
-```
+```js
 import {component, newState, composeActions, memoize} from 'omreact';
 
 // ...

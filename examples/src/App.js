@@ -14,9 +14,9 @@ const onFinish = (...args) => {
 };
 
 class Component extends React.PureComponent {
-  propTypes = {
+  static propTypes = {
     props: PropTypes.object,
-    component: PropTypes.object,
+    component: PropTypes.func,
   }
 
   constructor(props) {

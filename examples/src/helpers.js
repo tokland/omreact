@@ -3,8 +3,8 @@ import PropTypes from "prop-types";
 import _ from "lodash";
 
 class Button extends React.Component {
-  propTypes = {
-    children: PropTypes.array,
+  static propTypes = {
+    children: PropTypes.any,
   }
 
   shouldComponentUpdate(nextProps, _nextState) {
