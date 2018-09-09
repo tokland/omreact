@@ -1,6 +1,6 @@
 import React from "react";
 import {mount} from "enzyme";
-import {component, command, newState, memoize, callProp} from "..";
+import {component, newState, asyncAction, parentAction, memoize} from "..";
 import PropTypes from "prop-types";
 
 function onNextTick(done, expectation) {
@@ -11,41 +11,39 @@ function onNextTick(done, expectation) {
 }
 
 function getCounter({setProps, mergeProps} = {}) {
-  const init = props => command({
-    state: {value: props.initialValue},
-  });
+  const buildEvent = (type, ...args) => ({match: (obj) => obj[type](...args)});
 
-  const buildAction = (type, ...args) => ({match: (obj) => obj[type](...args)});
+  const init = props => newState({value: props.initialValue});
 
-  const actions = {
-    decrement: () => buildAction("decrement"),
-    add: memoize(value => buildAction("add", value)),
-    addButton: ev => buildAction("add", ev.button),
-    addFiveFromPromise: () => buildAction("addFiveFromPromise"),
-    callOnFinish: () => buildAction("callOnFinish"),
-    newProps: (prevProps) => buildAction("newProps", prevProps),
+  const events = {
+    decrement: () => buildEvent("decrement"),
+    add: memoize(value => buildEvent("add", value)),
+    addButton: ev => buildEvent("add", ev.button),
+    setTenAndAddFiveFromPromise: () => buildEvent("setTenAndAddFiveFromPromise"),
+    callOnFinish: () => buildEvent("callOnFinish"),
+    newProps: (prevProps) => buildEvent("newProps", prevProps),
   };
 
-  const update = (action, state, props) => action.match({
+  const update = (event, state, props) => event.match({
     decrement: () =>
       newState({value: state.value - 1}),
     add: value =>
       newState({value: state.value + value}),
-    addFiveFromPromise: () =>
-      command({asyncActions: [Promise.resolve(actions.add(5))]}),
+    setTenAndAddFiveFromPromise: () =>
+      [newState({value: 10}), asyncAction(Promise.resolve(events.add(5)))],
     callOnFinish: () =>
-      command({parentActions: [callProp(props.onFinish, state.value)]}),
+      parentAction(props.onFinish, state.value),
     newProps: (prevProps) =>
-      command({parentActions: [callProp(props.onPropChange, prevProps.initialValue, props.initialValue)]}),
+      parentAction(props.onPropChange, prevProps.initialValue, props.initialValue),
   });
 
   const render = (state, _props) => (
     <div>
-      <button className="decrement" $onClick={actions.decrement}>-1</button>
-      <button className="increment" $onClick={actions.add(+1)}>+1</button>
-      <button className="addButton" $onClick={actions.addButton}>+BUTTON</button>
-      <button className="addFiveFromPromise" $onClick={actions.addFiveFromPromise}>+5_FROM_PROMISE</button>
-      <button className="callOnFinish" $onClick={actions.callOnFinish}>CALL_ON_FINISH</button>
+      <button className="decrement" $onClick={events.decrement}>-1</button>
+      <button className="increment" $onClick={events.add(+1)}>+1</button>
+      <button className="addButton" $onClick={events.addButton}>+BUTTON</button>
+      <button className="setTenAndAddFiveFromPromise" $onClick={events.setTenAndAddFiveFromPromise}>+5_FROM_PROMISE</button>
+      <button className="callOnFinish" $onClick={events.callOnFinish}>CALL_ON_FINISH</button>
 
       <div className="value">{state.value}</div>
     </div>
@@ -55,7 +53,7 @@ function getCounter({setProps, mergeProps} = {}) {
     init,
     render,
     update,
-    lifecycles: {newProps: actions.newProps},
+    lifecycles: {newProps: events.newProps},
     propTypes: {
       initialValue: PropTypes.number,
       onFinish: PropTypes.func.isRequired,
@@ -132,14 +130,14 @@ describe("Counter component", () => {
     });
   });
 
-  describe("when button <addFiveFromPromise> clicked", () => {
+  describe("when button <setTenAndAddFiveFromPromise> clicked", () => {
     beforeEach(() => {
       counter = getCounter();
-      counter.find(".addFiveFromPromise").simulate("click");
+      counter.find(".setTenAndAddFiveFromPromise").simulate("click");
     });
 
-    it("increments state value by 5", (done) => {
-      onNextTick(done, () => expect(counter.find(".value").text()).toEqual("5"));
+    it("sets state value to 10+5 = 15", (done) => {
+      onNextTick(done, () => expect(counter.find(".value").text()).toEqual("15"));
     });
   });
 

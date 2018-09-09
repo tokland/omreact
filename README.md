@@ -2,7 +2,7 @@
 
 `OmReact` is a thin layer over React that allows writing purely functional components that hold local state. React is mostly a functional framework, but it still promotes imperative code through `this.setState`, which works by performing side-effects.
 
-`OmReact` is similar to the [Elm architecture](https://guide.elm-lang.org/architecture/), but applied to components: define a **single update** function that takes **actions** and returns **commands** (new state + async/parent actions). On render, event props take pure values, either action constructors or plain values (example: `$onClick="setValueOne"`), instead of functions with side effects.
+`OmReact` is similar to the [Elm architecture](https://guide.elm-lang.org/architecture/), but applied to components: define a **single update** function that takes **events** and returns **actions** (new state + async/parent actions). On render, event props take pure values, either event constructors or plain values (example: `$onClick="increment"`), instead of functions with side effects.
 
 ## Install
 
@@ -18,14 +18,14 @@ import {component, newState} from 'omreact';
 
 const init = newState({value: 0});
 
-const update = (action, state, props) => {
-  switch (action) {
+const update = (event, state, props) => {
+  switch (event) {
     case "decrement":
       return newState({value: state.value - 1});
     case "increment":
       return newState({value: state.value + 1});
     default:
-      throw new Error(`Unknown action: ${action}`);
+      throw new Error(`Unknown event: ${event}`);
   }
 };
 
@@ -50,49 +50,43 @@ export default component("MyCounterSimple", {init, render, update});
 component: (
   name: string,
   options: {
-    init: Command | Props => Command,
-    update: (Action, State, Props) => Command,
+    init: Action | Props => Action,
+    update: (Event, State, Props) => Action,
     render: (State, Props => React.Element,
-    lifecycles?: Record<string, Action>,
+    lifecycles?: Record<string, Event>,
     propTypes?: Object,
     defaultProps?: Object,
   }) => React.Component;
 
-type Command = {
-  state?: State,
-  asyncActions?: Array<Promise<Action>>,
-  parentActions?: Array<ParentAction>,
-}
+type Action = NewState | AsyncAction | ParentAction;
 ```
 
 Options:
 
-- `init`: This replaces `this.state =` in a React component constructor and async and props calling in `componentDidMount`.
+- `init`: Set initial state and async/parent actions. This replaces `this.state =` in a React component constructor and async and props calling in `componentDidMount`.
 
-- `update`: Take an action and current `state`/`props` and return a command to perform.
+- `update`: Takes an event, the current `state` and `props`, and returns the actions to dispatch.
 
-- `render` with `$eventProp={action | args => action}`: Like a React `render` function except that event props must be $-prefixed. An action can be either a plain value or a pure function. `$` is being used for convenience, it's a valid character for a variable name so there is no need to use a custom JSX babel transform. `@onClick={...}` would be probably nicer, though.
+- `render` with `$eventProp={Event | Args => Event}`: Like a React `render` function except that event props must be $-prefixed. An event can be either a plain value or a pure function. `$` is being used for convenience: it's a valid character for a variable name so there is no need to use a custom JSX babel transform. `@onClick={...}` would be probably nicer, though.
 
 - `lifecycles`: More on the lifecyle section.
 
 - `propTypes`/`defaultProps`. Standard React keys, will be passed down to the component.
 
-### Commands
+### Actions
 
-A *command* returned by `init` or `update` is an object containing any of those three keys: `state`, `asyncActions` and `parentActions`.
+#### Update state (`newState`)
 
-#### Update state (`state`)
+Return the new state of the component. This should be the new full state, not partial state like `this.setState` takes. Function: `newState: State => Action` is provided.
 
-Return the new state of the component. This should be the new full state, not partial state like `this.setState` takes. Since it's typical for a reducer to only change the state, a function `newState: newStateValue => command` is provided.
+#### Side-effects (`asyncAction`)
 
-#### Side-effects (`asyncActions`)
-
-In `OmReact` components, you don't have access to `setState`, to write asynchronous code (timers, requests), you return instead a command containing asynchronous actions (`asyncActions`), an array of promises that resolve into some other action. An example:
+In `OmReact` components, you don't have access to `setState`, to write asynchronous code (timers, requests), you return instead an async action with a promise that resolves into some other actions. An example:
 
 ```js
 import React from 'react';
 import {Button} from '../helpers';
-import {component, command, newState} from 'omreact';
+import {component, asyncAction, newState} from 'omreact';
 
 const getRandomNumber = (min, max) => {
   return fetch("https://qrng.anu.edu.au/API/jsonI.php?length=1&type=uint16")
@@ -100,27 +94,27 @@ const getRandomNumber = (min, max) => {
     .then(json => (json.data[0] % (max - min + 1)) + min);
 };
 
-const actions = {
+const events = {
   add: value => ({type: "add", value}),
   fetchRandom: {type: "fetchRandom"},
 };
 
 const init = newState({value: 0});
 
-const update = (action, state, props) => {
-  switch (action.type) {
+const update = (event, state, props) => {
+  switch (event.type) {
     case "add":
-      return newState({value: state.value + action.value});
+      return newState({value: state.value + event.value});
     case "fetchRandom":
-      return command({asyncActions: [getRandomNumber(1, 10).then(actions.add)]});
+      return asyncAction(getRandomNumber(1, 10).then(events.add));
     default:
-      throw new Error(`Unknown action: ${JSON.stringify(action)}`);
+      throw new Error(`Unknown event: ${JSON.stringify(event)}`);
   }
 };
 
 const render = (state, props) => (
   <div>
-    <Button $onClick={actions.fetchRandom}>+ASYNC_RANDOM(1..10)</Button>
+    <Button $onClick={events.fetchRandom}>+ASYNC_RANDOM(1..10)</Button>
     <div>{state.value}</div>
   </div>
 );
@@ -128,38 +122,37 @@ const render = (state, props) => (
 export default component("CounterWithSideEffects", {init, render, update});
 ```
 
-#### Notify the parent component (`parentActions`)
+#### Call the parent component (`parentAction`)
 
-React components report to their parents through props. While there is nothing preventing you from directly calling a prop in an `OmReact` component like you do in React, you should keep it purely functional by returning a command with `parentActions`, which contains an array of `callProp` entries. Example:
+React components report to their parents through props. While there is nothing preventing you from directly calling a prop in an `OmReact` component like you do in React, you should keep it purely functional by returning a a `parentAction`. Example:
 
 ```js
 import React from 'react';
 import {Button} from '../helpers';
-import {component, command} from 'omreact';
-import {callProp} from 'omreact/commands';
+import {component, newState, parentAction} from 'omreact';
 
-const actions = {
+const events = {
   increment: ev => ({type: "increment"}),
   notifyParent: ev => ({type: "notifyParent"}),
 };
 
-const init = command({state: {value: 0}});
+const init = newState({value: 0});
 
-const update = (action, state, props) => {
-  switch (action.type) {
+const update = (event, state, props) => {
+  switch (event.type) {
     case "increment":
-      return command({state: {value: state.value + 1}});
+      return newState({value: state.value + 1});
     case "notifyParent":
-      return command({parentActions: [callProp(props.onFinish, state.value)]});
+      return parentAction(props.onFinish, state.value);
     default:
-      throw new Error(`Unknown action: ${JSON.stringify(action)}`);
+      throw new Error(`Unknown event: ${JSON.stringify(event)}`);
   }
 };
 
 const render = (state, props) => (
   <div>
-    <Button $onClick={actions.increment}>+1</Button>
-    <Button $onClick={actions.notifyParent}>Notify parent</Button>
+    <Button $onClick={events.increment}>+1</Button>
+    <Button $onClick={events.notifyParent}>Notify parent</Button>
     <div>{state.value}</div>
   </div>
 );
@@ -171,33 +164,32 @@ export default component("CounterParentNotifications", {init, render, update});
 
 `OmReact` implements those React lifecycles:
 
-* `newProps: (prevProps) => action`. Called any time props change.
+* `newProps: (prevProps: Props) => Event`. Called any time props change.
 
 Example:
 
 ```js
-const actions = {
+const events = {
   newProps: prevProps => ({type: "newProps", prevProps}),
 }
 
-const update = (action, state, props) => (
-  switch (action.type) {
+const update = (event, state, props) => (
+  switch (event.type) {
     case "newProps":
-      return command({state: {value: action.prevProps.value}});
-    // other actions
+      return newState({value: event.prevProps.value});
   }
 );
 
-### Actions
+### Events
 
-#### Typical action signatures
+#### Typical event signatures
 
-A typical way of defining actions is to have *constructor arguments* (optional, should be memoized), *event arguments* (should not be memoized), or both. A typical `actions` object may look like this:
+A typical way of defining events is to have *constructor arguments* (optional, should be memoized), *event arguments* (should not be memoized), or both. A typical `events` object may look like this:
 
 ```js
 import {memoize} from 'omreact';
 
-const actions = {
+const events = {
   increment: {type: "increment"},
   add: memoize(value => ({type: "add", value})),
   addMouseButton: ev => ({type: "addMouseButton", ev}),
@@ -207,37 +199,37 @@ const actions = {
 
 Use like this on the event props of rendered elements:
 
-- `actions.increment`: An _object_, use it when you need no arguments. Example `$onClick={actions.increment}`. The dispatcher will see that it's not a function and won't call it with the event arguments.
-- `actions.add`: A _1-time callable function_ that takes only action constructor arguments. Example: `$onClick={actions.add(1)}`. This function should be memoized.
-- `actions.addMouseButton`: A _1-time callable function_ that takes only event arguments: Example: `$onClick={actions.addMouseButton}`. This function should not be memoized.
-- `actions.addValueAndMouseButton`: A _2-time callable function_ that takes both constructor and event arguments: `$onClick={actions.addValueAndMouseButton(1)}`. The first function should be memoized.
+- `events.increment`: An _object_, use it when you need no arguments. Example `$onClick={events.increment}`. The dispatcher will see that it's not a function and won't call it with the event arguments.
+- `events.add`: A _1-time callable function_ that takes only event constructor arguments. Example: `$onClick={events.add(1)}`. This function should be memoized.
+- `events.addMouseButton`: A _1-time callable function_ that takes only event arguments: Example: `$onClick={events.addMouseButton}`. This function should not be memoized.
+- `events.addValueAndMouseButton`: A _2-time callable function_ that takes both constructor and event arguments: `$onClick={events.addValueAndMouseButton(1)}`. The first function should be memoized.
 
-#### Memoize actions
+#### Memoize events
 
-It's well known  that you should never pass newly created values as props, otherwise a React component will think those props changed and will issue an unnecessary re-render. This applies to arrays, objects or arrow functions (no problem with strings, `===` works fine on them).  Extract prop values to `const` values to avoid this problem. Also, use memoization (the library already provides a helper for that: `memoize`) in action constructors. Example:
+It's well known  that you should never pass newly created values as props, otherwise a React component will think those props changed and will issue an unnecessary re-render. This applies to arrays, objects or arrow functions (no problem with strings, `===` works fine on them).  Extract prop values to `const` values to avoid this problem. Also, use memoization (the library already provides a helper for that: `memoize`) in event constructors. Example:
 
 ```js
 import {component, memoize} from 'omreact';
 
-const actions = {
+const events = {
   increment: ev => {type: "increment"},
   add: memoize(value => ({type: "increment"})),
 };
 ```
 
-#### Actions are agnostic
+#### Events are agnostic
 
-An action can be any any object or function (if it has constructor/event arguments). Create your own abstractions using actions as strings, arrays, objects, [proxies](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy), whatever works for you.
+An event can be any any object or function (if it has constructor/prop arguments). Create your own abstractions using events as strings, arrays, objects, [proxies](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy), whatever works for you.
 
 Check the [examples](examples/src) to see some alternative ways:
 
-- Using a [function](https://github.com/tokland/omreact/blob/master/examples/src/counter/CounterActionsSimple.js) that builds actions from a string and constructor arguments.
+- Using a [function](https://github.com/tokland/omreact/blob/master/examples/src/counter/CounterEventsSimple.js) that builds events from a string and constructor arguments.
 
 - Using pre-defined [ADT constructors](https://github.com/tokland/omreact/blob/master/examples/src/counter/CounterSimpleAdt.js).
 
-- Using on-the-fly [proxy constructors](https://github.com/tokland/omreact/blob/master/examples/src/counter/CounterActionsWithProxy.js).
+- Using on-the-fly [proxy constructors](https://github.com/tokland/omreact/blob/master/examples/src/counter/CounterEventsWithProxy.js).
 
-#### Actions are composable
+#### Events are composable
 
 ```js
 import {component, newState, composeActions, memoize} from 'omreact';
@@ -248,7 +240,7 @@ const update = (action, state, props) => action.match({
   add: value =>
     newState({value: state.value + value}),
   addOnePlusTwo: () =>
-    composeActions([actions.add(1), actions.add(2)], update, state, props),
+    composeEvents([events.add(1), events.add(2)], update, state, props),
 });
 
 // ...
