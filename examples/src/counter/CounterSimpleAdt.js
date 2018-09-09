@@ -2,58 +2,57 @@ import React from "react";
 import _ from "lodash";
 
 import {Button} from "../helpers";
-import {component, newState, memoize} from "omreact";
-import {eventPreventDefault} from "omreact/commands";
+import {component, newState, memoize, eventPreventDefault} from "omreact";
 
-function buildActions(actionsObj) {
-  const getAction = (actionName, argNames, args) => ({
+function buildEvents(eventsObj) {
+  const getEvent = (eventName, argNames, args) => ({
     ..._(argNames).zip(args).fromPairs().value(),
-    _match: matchObject => matchObject[actionName](...args),
+    _match: matchObject => matchObject[eventName](...args),
   });
 
-  return _.mapValues(actionsObj, (argNames, actionName) => {
+  return _.mapValues(eventsObj, (argNames, eventName) => {
     if (argNames.length === 0) {
-      return getAction(actionName, [], []);
+      return getEvent(eventName, [], []);
     } else {
       return memoize((...args) => {
         if (args.length < argNames.length) {
-          return (...eventArgs) => getAction(actionName, argNames, args.concat(eventArgs));
+          return (...eventArgs) => getEvent(eventName, argNames, args.concat(eventArgs));
         } else {
-          return getAction(actionName, argNames, args);
+          return getEvent(eventName, argNames, args);
         }
       });
     }
   });
 }
 
-const init = {state: {value: 0}};
+const init = newState({value: 0});
 
-const actions = buildActions({
+const events = buildEvents({
   decrement: [],
   add: ["value"],
   addValuePlusMouseButton: ["value", "ev"],
   cancelEvent: ["ev"],
 });
 
-const update = (action, state, props) => action._match({
+const update = (event, state, props) => event._match({
   decrement: () =>
     newState({value: state.value - 1}),
   add: value =>
     newState({value: state.value + value}),
   addValuePlusMouseButton: (value, ev) =>
-    update(actions.add(ev.button + value), state, props),
+    update(events.add(ev.button + value), state, props),
   cancelEvent: ev =>
-    ({asyncActions: [eventPreventDefault(ev)]}),
+    ({asyncEvents: [eventPreventDefault(ev)]}),
 });
 
 const render = (state, _props) => (
   <div>
-    <Button $onClick={actions.decrement}>DEC</Button>
-    <Button $onClick={actions.add(+1)}>+1</Button>
-    <Button $onMouseUp={actions.addValuePlusMouseButton(1)}
-      $onContextMenu={actions.cancelEvent}>+BUTTON</Button>
+    <Button $onClick={events.decrement}>DEC</Button>
+    <Button $onClick={events.add(+1)}>+1</Button>
+    <Button $onMouseUp={events.addValuePlusMouseButton(1)}
+      $onContextMenu={events.cancelEvent}>+BUTTON</Button>
     <div>{state.value}</div>
   </div>
 );
 
-export default component("CounterSimpleActionsWithAdt", {init, render, update});
+export default component("CounterSimpleEventsWithAdt", {init, render, update});

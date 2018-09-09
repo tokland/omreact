@@ -1,31 +1,31 @@
 import React from "react";
 import {Button} from "../helpers";
-import {component, command, memoize} from "omreact";
+import {component, newState, memoize} from "omreact";
 
-const actions = {
+const events = {
   decrement: {type: "decrement"},
   add: memoize(value => ({type: "add", value})),
 };
 
-const init = command({state: {value: 0}});
+const init = newState({value: 0});
 
-const update = (action, state, _props) => {
-  switch (action.type) {
+const update = (event, state, _props) => {
+  switch (event.type) {
   case "decrement":
-    return command({state: {value: state.value - 1}});
+    return newState({value: state.value - 1});
   case "add":
-    return command({state: {value: state.value + action.value}});
+    return newState({value: state.value + event.value});
   default:
-    throw new Error(`Action not implemented: ${JSON.stringify(action)}`);
+    throw new Error(`Event not implemented: ${JSON.stringify(event)}`);
   }
 };
 
 const render = (state, _props) => (
   <div>
-    <Button $onClick={actions.decrement}>-1</Button>
-    <Button $onClick={actions.add(1)}>+1</Button>
+    <Button $onClick={events.decrement}>-1</Button>
+    <Button $onClick={events.add(1)}>+1</Button>
     <div>{state.value}</div>
   </div>
 );
 
-export default component("CounterWithActionConstructorArgs", {init, render, update});
+export default component("CounterWithEventConstructorArgs", {init, render, update});
