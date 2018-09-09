@@ -47,27 +47,27 @@ export default component("MyCounterSimple", {init, render, update});
 ![Diagram](https://github.com/tokland/omreact/blob/master/OmReact.png)
 
 ```js
+type Action = NewState | AsyncAction | ParentAction;
+
 component: (
   name: string,
   options: {
     init: Action | Props => Action,
-    update: (Event, State, Props) => Action,
-    render: (State, Props => React.Element,
-    lifecycles?: Record<string, Event>,
+    update: (Event, State, Props) => Action | Array<Action>,
+    render: (State, Props) => React.Element,
+    lifecycles?: {newProps?: Event},
     propTypes?: Object,
     defaultProps?: Object,
   }) => React.Component;
-
-type Action = NewState | AsyncAction | ParentAction;
 ```
 
 Options:
 
-- `init`: Set initial state and async/parent actions. This replaces `this.state =` in a React component constructor and async and props calling in `componentDidMount`.
+- `init`: Set the initial state and async/parent actions. This replaces `state =` in a React class component and async and props calls in `componentDidMount`.
 
 - `update`: Takes an event, the current `state` and `props`, and returns the actions to dispatch.
 
-- `render` with `$eventProp={Event | Args => Event}`: Like a React `render` function except that event props must be $-prefixed. An event can be either a plain value or a pure function. `$` is being used for convenience: it's a valid character for a variable name so there is no need to use a custom JSX babel transform. `@onClick={...}` would be probably nicer, though.
+- `render` with `$eventProp={Event | Args => Event}`: Like a React `render` function except that event props must be prefixed with a `$`. An event can be either a plain value or a pure function. `$` is being used for convenience, it's a valid character for a variable name so there is no need to use a custom JSX babel transform. `@onClick={...}` would be probably nicer, though.
 
 - `lifecycles`: More on the lifecyle section.
 
@@ -223,11 +223,11 @@ An event can be any any object or function (if it has constructor/prop arguments
 
 Check the [examples](examples/src) to see some alternative ways:
 
-- Using a [function](https://github.com/tokland/omreact/blob/master/examples/src/counter/CounterEventsSimple.js) that builds events from a string and constructor arguments.
+- Using a [function](https://github.com/tokland/omreact/blob/master/examples/src/counter/CounterUsingEventFunctionCreator.js) that builds events from a string and constructor arguments.
 
 - Using pre-defined [ADT constructors](https://github.com/tokland/omreact/blob/master/examples/src/counter/CounterSimpleAdt.js).
 
-- Using on-the-fly [proxy constructors](https://github.com/tokland/omreact/blob/master/examples/src/counter/CounterEventsWithProxy.js).
+- Using on-the-fly [proxy constructors](https://github.com/tokland/omreact/blob/master/examples/src/counter/CounterEventWithProxy.js).
 
 #### Events are composable
 
