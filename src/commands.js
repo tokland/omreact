@@ -15,6 +15,7 @@ function callProp(prop, ...args) {
 function command(commandObject) {
   const keys = ["state", "asyncActions", "parentActions"];
   const invalidKeys = _(commandObject).keys().difference(keys);
+  
   if (_(invalidKeys).isEmpty()) {
     return commandObject;
   } else {

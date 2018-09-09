@@ -57,6 +57,7 @@ function getCounter({setProps, mergeProps} = {}) {
     update,
     lifecycles: {newProps: actions.newProps},
     propTypes: {
+      initialValue: PropTypes.number,
       onFinish: PropTypes.func.isRequired,
       onPropChange: PropTypes.func.isRequired,
     },
