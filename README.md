@@ -2,7 +2,7 @@
 
 `OmReact` is a thin layer over React that allows writing purely functional components that hold local state. React is mostly a functional framework, but it still promotes imperative code through `this.setState`, which works by performing side-effects.
 
-`OmReact` is similar to the [Elm architecture](https://guide.elm-lang.org/architecture/), but applied to components: define a **single update** function that takes **events** and returns **actions** (new state + async/parent actions). On render, event props take pure values, either event constructors or plain values (example: `$onClick="increment"`), instead of functions with side effects.
+The idea is similar to the [Elm architecture](https://guide.elm-lang.org/architecture/), but applied to components: define a **single update** function that takes **events** and returns **actions** (new state + async action + parent prop calls). On render, event props take pure values, either event constructors or plain values (example: `$onClick="increment"`), instead of functions with side effects like typical React components do.
 
 ## Install
 
@@ -37,7 +37,7 @@ const render = (state, props) => (
   </div>
 );
 
-export default component("MyCounterSimple", {init, render, update});
+export default component("MyCounter", {init, render, update});
 ```
 
 ##  OnReact component
@@ -47,7 +47,7 @@ export default component("MyCounterSimple", {init, render, update});
 ![Diagram](https://github.com/tokland/omreact/blob/master/OmReact.png)
 
 ```js
-type Action = NewState | AsyncAction | ParentAction;
+type Action = StateAction<State> | AsyncAction<Action> | ParentAction;
 
 component: (
   name: string,
@@ -55,7 +55,7 @@ component: (
     init: Action | Props => Action,
     update: (Event, State, Props) => Action | Array<Action>,
     render: (State, Props) => React.Element,
-    lifecycles?: {newProps?: Event},
+    lifecycles?: {newProps?: (prevProps: Props) => Event},
     propTypes?: Object,
     defaultProps?: Object,
   }) => React.Component;
@@ -65,7 +65,7 @@ Options:
 
 - `init`: Set the initial state and async/parent actions. This replaces `state =` in a React class component and async and props calls in `componentDidMount`.
 
-- `update`: Takes an event, the current `state` and `props`, and returns the actions to dispatch.
+- `update`: Takes an event, the current `state` and `props`, and returns an action or actions to dispatch.
 
 - `render` with `$eventProp={Event | Args => Event}`: Like a React `render` function except that event props must be prefixed with a `$`. An event can be either a plain value or a pure function. `$` is being used for convenience, it's a valid character for a variable name so there is no need to use a custom JSX babel transform. `@onClick={...}` would be probably nicer, though.
 
@@ -79,7 +79,7 @@ Options:
 
 Return the new state of the component. This should be the new full state, not partial state like `this.setState` takes. Function: `newState: State => Action` is provided.
 
-#### Side-effects (`asyncAction`)
+#### Async side-effects (`asyncAction`)
 
 In `OmReact` components, you don't have access to `setState`, to write asynchronous code (timers, requests), you return instead an async action with a promise that resolves into some other actions. An example:
 
@@ -180,6 +180,10 @@ const update = (event, state, props) => (
   }
 );
 
+export default component("MyCounterWithPropsChangeDetection",
+    {init, render, update, lifecycles: {newProps: events.newProps}});
+```
+
 ### Events
 
 #### Typical event signatures
@@ -206,37 +210,37 @@ Use like this on the event props of rendered elements:
 
 #### Memoize events
 
-It's well known  that you should never pass newly created values as props, otherwise a React component will think those props changed and will issue an unnecessary re-render. This applies to arrays, objects or arrow functions (no problem with strings, `===` works fine on them).  Extract prop values to `const` values to avoid this problem. Also, use memoization (the library already provides a helper for that: `memoize`) in event constructors. Example:
+One should not pass newly created values as props to components, as React will think those props changed and will issue an unnecessary re-render. This applies to arrays, objects or arrow functions - no problem with strings or numbers, `===` works fine on them.  So we should extract prop to `const` values . Also, use memoization, the library already provides a helper for that: `memoize`, in event constructors. Example:
 
 ```js
 import {component, memoize} from 'omreact';
 
 const events = {
   increment: ev => {type: "increment"},
-  add: memoize(value => ({type: "increment"})),
+  add: memoize(value => ({type: "add", value})), // Use: $onClick={events.add(5)}
 };
 ```
 
 #### Events are agnostic
 
-An event can be any any object or function (if it has constructor/prop arguments). Create your own abstractions using events as strings, arrays, objects, [proxies](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy), whatever works for you.
+An event can be any any object or function (if it has constructor/prop arguments). Create your own abstractions using strings, arrays, objects, [proxies](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy), whatever.
 
 Check the [examples](examples/src) to see some alternative ways:
 
-- Using a [function](https://github.com/tokland/omreact/blob/master/examples/src/counter/CounterUsingEventFunctionCreator.js) that builds events from a string and constructor arguments.
+- Using a [function constructor](https://github.com/tokland/omreact/blob/master/examples/src/counter/CounterUsingEventFunctionCreator.js).
 
-- Using pre-defined [ADT constructors](https://github.com/tokland/omreact/blob/master/examples/src/counter/CounterSimpleAdt.js).
+- Using [ADT constructors](https://github.com/tokland/omreact/blob/master/examples/src/counter/CounterSimpleAdt.js).
 
 - Using on-the-fly [proxy constructors](https://github.com/tokland/omreact/blob/master/examples/src/counter/CounterEventWithProxy.js).
 
 #### Events are composable
 
 ```js
-import {component, newState, composeActions, memoize} from 'omreact';
+import {component, newState, composeEvents, memoize} from 'omreact';
 
 // ...
 
-const update = (action, state, props) => action.match({
+const update = (event, state, props) => event.match({
   add: value =>
     newState({value: state.value + value}),
   addOnePlusTwo: () =>
@@ -246,12 +250,12 @@ const update = (action, state, props) => action.match({
 // ...
 ```
 
-## Examples page
+## Examples
+
+Check the [examples](examples/src) directory in the repository.
 
 ```sh
 $ cd examples
 $ yarn install
 $ yarn start
 ```
-
-Check the [examples](examples/src) directory in the repository.
