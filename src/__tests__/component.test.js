@@ -10,16 +10,16 @@ function onNextTick(done, expectation) {
   }, 1);
 }
 
-function getCounter({setProps, mergeProps} = {}) {
-  const buildEvent = (type, ...args) => ({match: (obj) => obj[type](...args)});
+const buildEvent = (type, ...args) => ({match: (obj) => obj[type](...args)});
 
+function getCounter({setProps, mergeProps} = {}) {
   const init = props => newState({value: props.initialValue});
 
   const events = {
     decrement: () => buildEvent("decrement"),
     add: memoize(value => buildEvent("add", value)),
     addButton: ev => buildEvent("add", ev.button),
-    setTenAndAddFiveFromPromise: () => buildEvent("setTenAndAddFiveFromPromise"),
+    set10And5FromProm: () => buildEvent("set10And5FromProm"),
     callOnFinish: () => buildEvent("callOnFinish"),
     newProps: (prevProps) => buildEvent("newProps", prevProps),
   };
@@ -29,7 +29,7 @@ function getCounter({setProps, mergeProps} = {}) {
       newState({value: state.value - 1}),
     add: value =>
       newState({value: state.value + value}),
-    setTenAndAddFiveFromPromise: () =>
+    set10And5FromProm: () =>
       [newState({value: 10}), asyncAction(Promise.resolve(events.add(5)))],
     callOnFinish: () =>
       parentAction(props.onFinish, state.value),
@@ -42,7 +42,7 @@ function getCounter({setProps, mergeProps} = {}) {
       <button className="decrement" $onClick={events.decrement}>-1</button>
       <button className="increment" $onClick={events.add(+1)}>+1</button>
       <button className="addButton" $onClick={events.addButton}>+BUTTON</button>
-      <button className="setTenAndAddFiveFromPromise" $onClick={events.setTenAndAddFiveFromPromise}>+5_FROM_PROMISE</button>
+      <button className="set10And5FromProm" $onClick={events.set10And5FromProm}>+5_FROM_PROMISE</button>
       <button className="callOnFinish" $onClick={events.callOnFinish}>CALL_ON_FINISH</button>
 
       <div className="value">{state.value}</div>
@@ -81,7 +81,7 @@ describe("Counter component", () => {
       counter = getCounter();
     });
 
-    it("renders component with correct name", () => {
+    it("renders with name", () => {
       expect(counter.name()).toEqual("Counter");
     });
 
@@ -93,7 +93,8 @@ describe("Counter component", () => {
   describe("with missing prop", () => {
     it("throws error", () => {
       expect(() => getCounter({mergeProps: {onFinish: 1}}))
-        .toThrow("Warning: Failed prop type: Invalid prop `onFinish` of type `number` supplied to `Counter`, expected `function`.");
+        .toThrow("Warning: Failed prop type: Invalid prop " +
+          "`onFinish` of type `number` supplied to `Counter`, expected `function`.");
     });
   });
 
@@ -125,15 +126,15 @@ describe("Counter component", () => {
       counter.find(".addButton").simulate("click", {button: 3});
     });
 
-    it("increments state value by button value", () => {
+    it("increments state value by the button value", () => {
       expect(counter.find(".value").text()).toEqual("3");
     });
   });
 
-  describe("when button <setTenAndAddFiveFromPromise> clicked", () => {
+  describe("when button <set10And5FromProm> clicked", () => {
     beforeEach(() => {
       counter = getCounter();
-      counter.find(".setTenAndAddFiveFromPromise").simulate("click");
+      counter.find(".set10And5FromProm").simulate("click");
     });
 
     it("sets state value to 10+5 = 15", (done) => {
