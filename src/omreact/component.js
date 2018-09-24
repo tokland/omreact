@@ -29,7 +29,7 @@ function component(name, {
       this._getDispatcher = memoize(this._getDispatcher.bind(this));
     }
 
-    _shouldComponentUpdate(nextProps, nextState) {
+    shouldComponentUpdate(nextProps, nextState) {
       return shallowEqual(this.props, nextProps, this.state, nextState);
     }
 
@@ -72,18 +72,9 @@ function component(name, {
 
     _getDispatcher(elementType, prop, value) {
       if (value === undefined) {
-        throw new Error(`[${name}] you passed undefined as prop ${prop} to element ${elementType}`);
-      }
-
-      switch (prop.match(/^\$*/)[0].length) {
-      case 1: // $onEvent -> pass arguments to event
+        throw new Error(`[${name}] you passed prop ${prop}={undefined} to element ${elementType}`);
+      } else {
         return (...args) => this._dispatchAction(_(value).isFunction() ? value(...args) : value);
-      case 2: // $$onEvent -> don't pass arguments to event
-        // This is not really needed as we can check before dispatching or the user can simply
-        // ignore the event arguments. Also, we need some escaping mechanism: $$prop -> $prop.
-        return () => this._dispatchAction(_(value).isFunction() ? value() : value);
-      default:
-        throw new Error("Invalid event prop: " + prop);
       }
     }
 
@@ -94,19 +85,27 @@ function component(name, {
   };
 }
 
+/* Process React element recursively and transform all $xyz={action} props to xyz={dispatch(action)} */
+
+const eventPropRegexp = /^\$[^$]/;
+
 function processEventProps(element, getDispatcher) {
   if (!element || !element.props) {
     return element;
   } else {
     const convertProp = (value, prop) => {
-      return prop.startsWith("$")
-        ? [prop.replace(/^\$*/, ""), getDispatcher(element.type.name || element.type, prop, value)]
-        : [prop, value];
+      const isEventProp = prop.match(eventPropRegexp);
+      if (isEventProp) {
+        const dispatcher = getDispatcher(element.type.name || element.type, prop, value);
+        return [prop.replace(/^\$*/, ""), dispatcher];
+      } else {
+        return [prop, value];
+      }
     };
-    const allProps = _(element.props).map(convertProp).fromPairs().value();
     const { children } = element.props;
     const newChildren = React.Children.map(children, el => processEventProps(el, getDispatcher));
-    return React.createElement(element.type, allProps, newChildren);
+    const finalProps = _(element.props).map(convertProp).fromPairs().value();
+    return React.createElement(element.type, finalProps, newChildren);
   }
 }
 

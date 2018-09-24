@@ -2,5 +2,5 @@ node_modules
 bak
 component/
 index.js*
-omreact
+/omreact/
 NOTES-*
